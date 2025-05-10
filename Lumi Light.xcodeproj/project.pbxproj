@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		55B48CDE2DCFB6BF009D683B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55B48CC62DCFB6BE009D683B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55B48CCD2DCFB6BE009D683B;
+			remoteInfo = "Lumi Light";
+		};
+		55B48CE82DCFB6BF009D683B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 55B48CC62DCFB6BE009D683B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 55B48CCD2DCFB6BE009D683B;
+			remoteInfo = "Lumi Light";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		55B48CCE2DCFB6BE009D683B /* Lumi Light.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lumi Light.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		55B48CD02DCFB6BE009D683B /* Lumi Light */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Lumi Light";
+			sourceTree = "<group>";
+		};
+		55B48CE02DCFB6BF009D683B /* Lumi LightTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Lumi LightTests";
+			sourceTree = "<group>";
+		};
+		55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Lumi LightUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		55B48CCB2DCFB6BE009D683B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CDA2DCFB6BF009D683B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CE42DCFB6BF009D683B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		55B48CC52DCFB6BE009D683B = {
+			isa = PBXGroup;
+			children = (
+				55B48CD02DCFB6BE009D683B /* Lumi Light */,
+				55B48CE02DCFB6BF009D683B /* Lumi LightTests */,
+				55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */,
+				55B48CCF2DCFB6BE009D683B /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		55B48CCF2DCFB6BE009D683B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				55B48CCE2DCFB6BE009D683B /* Lumi Light.app */,
+				55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */,
+				55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		55B48CCD2DCFB6BE009D683B /* Lumi Light */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55B48CF12DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi Light" */;
+			buildPhases = (
+				55B48CCA2DCFB6BE009D683B /* Sources */,
+				55B48CCB2DCFB6BE009D683B /* Frameworks */,
+				55B48CCC2DCFB6BE009D683B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				55B48CD02DCFB6BE009D683B /* Lumi Light */,
+			);
+			name = "Lumi Light";
+			packageProductDependencies = (
+			);
+			productName = "Lumi Light";
+			productReference = 55B48CCE2DCFB6BE009D683B /* Lumi Light.app */;
+			productType = "com.apple.product-type.application";
+		};
+		55B48CDC2DCFB6BF009D683B /* Lumi LightTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55B48CF42DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi LightTests" */;
+			buildPhases = (
+				55B48CD92DCFB6BF009D683B /* Sources */,
+				55B48CDA2DCFB6BF009D683B /* Frameworks */,
+				55B48CDB2DCFB6BF009D683B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				55B48CDF2DCFB6BF009D683B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				55B48CE02DCFB6BF009D683B /* Lumi LightTests */,
+			);
+			name = "Lumi LightTests";
+			packageProductDependencies = (
+			);
+			productName = "Lumi LightTests";
+			productReference = 55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		55B48CE62DCFB6BF009D683B /* Lumi LightUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55B48CF72DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi LightUITests" */;
+			buildPhases = (
+				55B48CE32DCFB6BF009D683B /* Sources */,
+				55B48CE42DCFB6BF009D683B /* Frameworks */,
+				55B48CE52DCFB6BF009D683B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				55B48CE92DCFB6BF009D683B /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */,
+			);
+			name = "Lumi LightUITests";
+			packageProductDependencies = (
+			);
+			productName = "Lumi LightUITests";
+			productReference = 55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		55B48CC62DCFB6BE009D683B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1630;
+				LastUpgradeCheck = 1630;
+				TargetAttributes = {
+					55B48CCD2DCFB6BE009D683B = {
+						CreatedOnToolsVersion = 16.3;
+					};
+					55B48CDC2DCFB6BF009D683B = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 55B48CCD2DCFB6BE009D683B;
+					};
+					55B48CE62DCFB6BF009D683B = {
+						CreatedOnToolsVersion = 16.3;
+						TestTargetID = 55B48CCD2DCFB6BE009D683B;
+					};
+				};
+			};
+			buildConfigurationList = 55B48CC92DCFB6BE009D683B /* Build configuration list for PBXProject "Lumi Light" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 55B48CC52DCFB6BE009D683B;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 55B48CCF2DCFB6BE009D683B /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				55B48CCD2DCFB6BE009D683B /* Lumi Light */,
+				55B48CDC2DCFB6BF009D683B /* Lumi LightTests */,
+				55B48CE62DCFB6BF009D683B /* Lumi LightUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		55B48CCC2DCFB6BE009D683B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CDB2DCFB6BF009D683B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CE52DCFB6BF009D683B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		55B48CCA2DCFB6BE009D683B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CD92DCFB6BF009D683B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		55B48CE32DCFB6BF009D683B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		55B48CDF2DCFB6BF009D683B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55B48CCD2DCFB6BE009D683B /* Lumi Light */;
+			targetProxy = 55B48CDE2DCFB6BF009D683B /* PBXContainerItemProxy */;
+		};
+		55B48CE92DCFB6BF009D683B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 55B48CCD2DCFB6BE009D683B /* Lumi Light */;
+			targetProxy = 55B48CE82DCFB6BF009D683B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		55B48CEF2DCFB6BF009D683B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		55B48CF02DCFB6BF009D683B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		55B48CF22DCFB6BF009D683B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-Light";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		55B48CF32DCFB6BF009D683B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-Light";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		55B48CF52DCFB6BF009D683B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-LightTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lumi Light.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lumi Light";
+			};
+			name = Debug;
+		};
+		55B48CF62DCFB6BF009D683B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.4;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-LightTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Lumi Light.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Lumi Light";
+			};
+			name = Release;
+		};
+		55B48CF82DCFB6BF009D683B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-LightUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Lumi Light";
+			};
+			name = Debug;
+		};
+		55B48CF92DCFB6BF009D683B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 796NKS3C66;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.mattkrussow.Lumi-LightUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Lumi Light";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		55B48CC92DCFB6BE009D683B /* Build configuration list for PBXProject "Lumi Light" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55B48CEF2DCFB6BF009D683B /* Debug */,
+				55B48CF02DCFB6BF009D683B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55B48CF12DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi Light" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55B48CF22DCFB6BF009D683B /* Debug */,
+				55B48CF32DCFB6BF009D683B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55B48CF42DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi LightTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55B48CF52DCFB6BF009D683B /* Debug */,
+				55B48CF62DCFB6BF009D683B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		55B48CF72DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi LightUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				55B48CF82DCFB6BF009D683B /* Debug */,
+				55B48CF92DCFB6BF009D683B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 55B48CC62DCFB6BE009D683B /* Project object */;
+}
