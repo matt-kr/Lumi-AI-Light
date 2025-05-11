@@ -1,0 +1,21 @@
+PODS:
+  - MediaPipeTasksGenAI (0.10.21):
+    - MediaPipeTasksGenAIC (= 0.10.21)
+  - MediaPipeTasksGenAIC (0.10.21)
+
+DEPENDENCIES:
+  - MediaPipeTasksGenAI
+  - MediaPipeTasksGenAIC
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - MediaPipeTasksGenAI
+    - MediaPipeTasksGenAIC
+
+SPEC CHECKSUMS:
+  MediaPipeTasksGenAI: 64f91ec1f2666abeb6dc719a8e8d1e2bf36374c0
+  MediaPipeTasksGenAIC: 1df8d7c6fcbe797d2a04a514edd8b31445291ec8
+
+PODFILE CHECKSUM: 89c882c086c8aee0754acb7c001c0c560b7879c7
+
+COCOAPODS: 1.16.2
