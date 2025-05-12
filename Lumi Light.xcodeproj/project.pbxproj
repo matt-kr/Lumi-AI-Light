@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5581E4E92DD1B3270091C7A4 /* GrowingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */; };
 		55B48D172DCFD548009D683B /* LlmInferenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B48D162DCFD548009D683B /* LlmInferenceService.swift */; };
 		55B48D272DCFE37A009D683B /* gemma3-1B-it-int4.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D262DCFE37A009D683B /* gemma3-1B-it-int4.tflite */; };
 		55B48D2D2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */; };
@@ -34,6 +35,7 @@
 /* Begin PBXFileReference section */
 		507241D9909F86B6C5153EED /* Pods-Lumi Light.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.debug.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.debug.xcconfig"; sourceTree = "<group>"; };
 		53E2D1C3E8A9EE341DEBF82C /* Pods_Lumi_Light.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Lumi_Light.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowingTextEditor.swift; sourceTree = "<group>"; };
 		55B48CCE2DCFB6BE009D683B /* Lumi Light.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lumi Light.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -117,6 +119,7 @@
 				55B48D262DCFE37A009D683B /* gemma3-1B-it-int4.tflite */,
 				55B48D302DCFF120009D683B /* nasalization-rg 2.otf */,
 				55B48D162DCFD548009D683B /* LlmInferenceService.swift */,
+				5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */,
 				55B48CD02DCFB6BE009D683B /* Lumi Light */,
 				55B48CE02DCFB6BF009D683B /* Lumi LightTests */,
 				55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */,
@@ -311,6 +314,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5581E4E92DD1B3270091C7A4 /* GrowingTextEditor.swift in Sources */,
 				55B48D172DCFD548009D683B /* LlmInferenceService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

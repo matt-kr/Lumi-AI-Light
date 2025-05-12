@@ -3,25 +3,26 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var llmService = LlmInferenceService(modelName: "gemma-2b-it-gpu-int8")
     @StateObject private var keyboard = KeyboardResponder() // << --- ADDED
-
+    
     @State private var promptText: String = ""
     @FocusState private var isPromptFocused: Bool
     @State private var isResponseAreaGlowing = false
-
+    
     let nasalizationFont = "Nasalization-Regular"
     let messageFontName = "Trebuchet MS"
     let singleLineMinHeight: CGFloat = 38
-
+    private let collapsedMinHeight: CGFloat = 19
+    
     // Store current keyboard animation properties
     @State private var keyboardAnimationDuration: TimeInterval = 0.25
     @State private var keyboardAnimationCurve: UIView.AnimationOptions = .curveEaseInOut
-
-
+    
+    
     init() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = UIColor(Color.sl_bgPrimary)
-
+        
         let titleFont = UIFont(name: nasalizationFont, size: 22) ?? UIFont.systemFont(ofSize: 22, weight: .bold)
         // ... (rest of your init remains the same) ...
         let titleColor = UIColor(Color.sl_textPrimary)
@@ -29,7 +30,7 @@ struct ContentView: View {
         shadow.shadowColor = UIColor(Color.sl_glowColor.opacity(0.5))
         shadow.shadowOffset = CGSize(width: 0, height: 1)
         shadow.shadowBlurRadius = 2
-
+        
         appearance.titleTextAttributes = [
             .foregroundColor: titleColor,
             .font: titleFont,
@@ -40,22 +41,22 @@ struct ContentView: View {
             .font: UIFont(name: nasalizationFont, size: 34) ?? UIFont.systemFont(ofSize: 34, weight: .bold),
             .shadow: shadow
         ]
-
+        
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
         UINavigationBar.appearance().tintColor = UIColor(Color.sl_textPrimary)
     }
-
+    
     var body: some View {
         NavigationView {
             ZStack {
                 Color.sl_bgPrimary.ignoresSafeArea()
-
+                
                 VStack(spacing: 0) {
                     if let initError = llmService.initErrorMessage, llmService.conversation.isEmpty {
                         errorWarningView(message: initError)
                     }
-
+                    
                     ScrollViewReader { scrollViewProxy in
                         ScrollView {
                             LazyVStack(spacing: 12) {
@@ -101,18 +102,18 @@ struct ContentView: View {
                                 }
                             }
                         }
-
+                        
                     }
                     .background(Color.sl_bgPrimary)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .padding(.top, (llmService.initErrorMessage != nil && llmService.conversation.isEmpty) ? 0 : 10)
                     // The ScrollView itself should not ignore the keyboard safe area,
                     // as its content needs to scroll above it.
-
+                    
                     inputAreaView()
                         .padding(.horizontal)
                         .padding(.top, 8)
-                        // This padding will be animated by the .animation modifier on the VStack
+                    // This padding will be animated by the .animation modifier on the VStack
                         .padding(.bottom, keyboard.currentHeight > 0 ? 0 : 8) // Adjust bottom padding when keyboard is hidden
                 }
                 // This VStack is what moves with the keyboard
@@ -120,7 +121,7 @@ struct ContentView: View {
                 .animation(Animation.customSpring(duration: keyboardAnimationDuration, bounce: 0.1), value: keyboard.currentHeight) // << --- KEY CHANGE for keyboard height
                 .ignoresSafeArea(.keyboard, edges: .bottom) // << --- KEY CHANGE
             }
-            .navigationTitle("Lumi Chat")
+            .navigationTitle("Lumi")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
@@ -161,46 +162,55 @@ struct ContentView: View {
         }
         .environment(\.colorScheme, .dark)
     }
-
+    
     @ViewBuilder
     private func inputAreaView() -> some View {
         HStack(spacing: 10) {
+            
+            // ---------- super‑lean input box ----------
+
             ZStack(alignment: .leading) {
-                TextEditor(text: $promptText)
-                    // ... (TextEditor setup remains mostly the same) ...
-                    .font(.custom(nasalizationFont, size: 16))
-                    .foregroundColor(Color.sl_textPrimary)
-                    .scrollContentBackground(.hidden)
-                    .frame(minHeight: singleLineMinHeight, maxHeight: 120)
-                    .padding(.leading, 10)
-                    .padding(.trailing, 5)
-                    .padding(.vertical, 8) // Internal padding of TextEditor
-                    .background(Color.sl_bgTertiary)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isPromptFocused ? Color.sl_glowColor.opacity(0.8) : Color.sl_borderPrimary, lineWidth: isPromptFocused ? 1.5 : 1)
-                    )
-                    .shadow(color: isPromptFocused ? Color.sl_glowColor.opacity(0.6) : .clear, radius: isPromptFocused ? 6 : 0)
-                    .focused($isPromptFocused)
-                    .disabled(llmService.isLoading && !currentPromptCanBeStopped())
-                    .onSubmit(submitPrompt)
-                    // The .animation for promptText (TextEditor height change) should be fine here
-                    .animation(.easeInOut(duration: 0.2), value: promptText)
 
+                // 1️⃣ the growing/shrinking editor
+                GrowingTextEditor(
+                    text: $promptText,
+                    minHeight: collapsedMinHeight,   // ≈ 20 pt
+                    maxHeight: 120
+                )
+                .font(.custom(nasalizationFont, size: 16))
+                .foregroundColor(Color.sl_textPrimary)
+                .scrollContentBackground(.hidden)    // no gray background flash
+                .padding(.horizontal, 8)             // 8 left + 8 right
+                .padding(.vertical, 4)               // 4 top + 4 bottom
+                .background(Color.sl_bgTertiary)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isPromptFocused ? Color.sl_glowColor.opacity(0.8)
+                                                : Color.sl_borderPrimary,
+                                lineWidth: isPromptFocused ? 1.5 : 1)
+                )
+                .shadow(color: isPromptFocused ? Color.sl_glowColor.opacity(0.6)
+                                               : .clear,
+                        radius: isPromptFocused ? 6 : 0)
+                .focused($isPromptFocused)
+                .disabled(llmService.isLoading && !currentPromptCanBeStopped())
+                .onSubmit(submitPrompt)
+                .animation(nil, value: promptText)   // no implicit size tween
 
+                // 2️⃣ placeholder (only visible when editor is empty)
                 if promptText.isEmpty && !isPromptFocused {
                     Text("Hi Matt, what can I help you with?")
-                        // ... (Placeholder setup remains the same) ...
                         .font(.custom(nasalizationFont, size: 16))
                         .foregroundColor(Color.sl_textPlaceholder)
-                        .padding(.leading, 15)
-                        .padding(.vertical, (singleLineMinHeight - (UIFont(name: nasalizationFont, size: 16)?.lineHeight ?? 16)) / 2 )
+                        .padding(.leading, 10)       // align nicely with typing cursor
                         .allowsHitTesting(false)
-                        // Animate the placeholder appearance/disappearance smoothly
                         .transition(.opacity.animation(.easeInOut(duration: 0.15)))
                 }
             }
+            .frame(maxHeight: 120)          // 🟢 1. cap the composer
+            .layoutPriority(1)              // 🟢 2. keep it above the scroll‑view
+            
             // ... (Button setup remains the same) ...
             Button(action: submitOrStop) {
                 HStack(spacing: llmService.isLoading ? 6 : 0) {
@@ -229,7 +239,7 @@ struct ContentView: View {
         // NO .animation(.easeInOut(duration: 0.25), value: isPromptFocused) HERE ANYMORE
         // The parent VStack handles animation based on keyboard.currentHeight
     }
-
+    
     private func errorWarningView(message: String) -> some View {
         // ... (remains the same) ...
         Text(message)
@@ -243,7 +253,7 @@ struct ContentView: View {
             .padding(.horizontal)
             .padding(.top, 5)
     }
-
+    
     private func submitOrStop() {
         if llmService.isLoading {
             if currentPromptCanBeStopped() {
@@ -255,32 +265,27 @@ struct ContentView: View {
             submitPrompt()
         }
     }
-
+    
     private func submitPrompt() {
         let trimmedPrompt = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedPrompt.isEmpty else { return }
-
-        // Keyboard dismissal will trigger the main animation
+        
+        // Dismiss the keyboard
         isPromptFocused = false
-
-        // Clear text after a very short delay to allow keyboard animation to start
-        // and prevent placeholder from flickering if text clears too fast
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            if !self.isPromptFocused { // ensure focus actually changed
-                 self.promptText = ""
-            }
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + keyboardAnimationDuration + 0.05) { // Wait for keyboard to mostly hide
+        
+        // Collapse the text editor immediately so the HStack height is correct
+        promptText = ""
+        
+        // (Optional) wait for the keyboard to finish its hide animation before streaming
+        DispatchQueue.main.asyncAfter(deadline: .now() + keyboardAnimationDuration + 0.05) {
             self.llmService.generateResponseStreaming(prompt: trimmedPrompt)
         }
     }
-
+    
     private func currentPromptCanBeStopped() -> Bool {
         return llmService.isLoading
     }
 }
-
 // Helper for custom spring animation to match keyboard feel
 extension Animation {
     static func customSpring(duration: TimeInterval, bounce: CGFloat = 0.0) -> Animation {
