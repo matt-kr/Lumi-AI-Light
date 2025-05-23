@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 71;
 	objects = {
 
 /* Begin PBXAggregateTarget section */
@@ -16,6 +16,7 @@
 			dependencies = (
 			);
 			name = MediaPipeTasksGenAIC;
+			productName = MediaPipeTasksGenAIC;
 		};
 		9491E30DDEE35F68F71C9966DC026B6F /* MediaPipeTasksGenAI */ = {
 			isa = PBXAggregateTarget;
@@ -27,6 +28,7 @@
 				03050BAF0794E42F6D04B25706AEA9B1 /* PBXTargetDependency */,
 			);
 			name = MediaPipeTasksGenAI;
+			productName = MediaPipeTasksGenAI;
 		};
 /* End PBXAggregateTarget section */
 
@@ -63,7 +65,7 @@
 /* Begin PBXFileReference section */
 		04B7031184446E2A7A206F6C175CCDD3 /* Pods-Lumi Light-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Pods-Lumi Light-umbrella.h"; sourceTree = "<group>"; };
 		069BD7EF4461100BFA5972BF3882EE78 /* MediaPipeTasksGenAI.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MediaPipeTasksGenAI.debug.xcconfig; sourceTree = "<group>"; };
-		0B3D7B2F45FCB97A1F2551572635106E /* MediaPipeTasksGenAIC.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = MediaPipeTasksGenAIC.xcframework; path = frameworks/MediaPipeTasksGenAIC.xcframework; sourceTree = "<group>"; };
+		0B3D7B2F45FCB97A1F2551572635106E /* MediaPipeTasksGenAIC.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcframework; name = MediaPipeTasksGenAIC.xcframework; path = frameworks/MediaPipeTasksGenAIC.xcframework; sourceTree = "<group>"; };
 		27EAFAE4D83F697296D338987F8C2144 /* MediaPipeTasksGenAI.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MediaPipeTasksGenAI.release.xcconfig; sourceTree = "<group>"; };
 		317800DF14CB72AE31435620064DAEB0 /* MediaPipeTasksGenAIC.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MediaPipeTasksGenAIC.debug.xcconfig; sourceTree = "<group>"; };
 		384DDA2CB25005BD6479B5987C619DD4 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -71,14 +73,14 @@
 		5EA6ADD00DD759011C8E6D0061400A54 /* Pods-Lumi Light-acknowledgements.markdown */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = "Pods-Lumi Light-acknowledgements.markdown"; sourceTree = "<group>"; };
 		75F85B38CAB9F00FE0F2993BE8BC3A8D /* MediaPipeTasksGenAIC.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = MediaPipeTasksGenAIC.release.xcconfig; sourceTree = "<group>"; };
 		9A8DE74DAE935017884539F73F22793E /* Pods-Lumi Light-dummy.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = "Pods-Lumi Light-dummy.m"; sourceTree = "<group>"; };
-		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; lastKnownFileType = text; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		9D940727FF8FB9C785EB98E56350EF41 /* Podfile */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; name = Podfile; path = ../Podfile; sourceTree = SOURCE_ROOT; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		A0F8CCE7705E60E9B08AF8ACAB343A71 /* Pods-Lumi Light-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Lumi Light-Info.plist"; sourceTree = "<group>"; };
 		C6F748A5E6D31ECB3FC82D328B8FE2F0 /* MediaPipeTasksGenAI-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "MediaPipeTasksGenAI-xcframeworks.sh"; sourceTree = "<group>"; };
 		DC98F2C80BD2C454EEB3E257A3F98957 /* Pods-Lumi Light-acknowledgements.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "Pods-Lumi Light-acknowledgements.plist"; sourceTree = "<group>"; };
 		E419C2AF58B6452E040BCBE74CE474EB /* MediaPipeTasksGenAIC-xcframeworks.sh */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.script.sh; path = "MediaPipeTasksGenAIC-xcframeworks.sh"; sourceTree = "<group>"; };
 		E4EF682FD2F4D95EA528C89368EEF709 /* Pods-Lumi Light.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Lumi Light.release.xcconfig"; sourceTree = "<group>"; };
-		E8DA90B66F89F6CB6826A131239D2B8E /* MediaPipeTasksGenAI.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; name = MediaPipeTasksGenAI.xcframework; path = frameworks/MediaPipeTasksGenAI.xcframework; sourceTree = "<group>"; };
-		FD0DE85C9B71EF672ED1584D573F31C7 /* Pods-Lumi Light */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = "Pods-Lumi Light"; path = Pods_Lumi_Light.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E8DA90B66F89F6CB6826A131239D2B8E /* MediaPipeTasksGenAI.xcframework */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = wrapper.xcframework; name = MediaPipeTasksGenAI.xcframework; path = frameworks/MediaPipeTasksGenAI.xcframework; sourceTree = "<group>"; };
+		FD0DE85C9B71EF672ED1584D573F31C7 /* Pods_Lumi_Light.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Lumi_Light.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		FEB4F5B408E2C366447E044D62BB7E78 /* Pods-Lumi Light.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = "Pods-Lumi Light.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -125,7 +127,7 @@
 		49BD1680D3DE95668E32814C4CE3E792 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				FD0DE85C9B71EF672ED1584D573F31C7 /* Pods-Lumi Light */,
+				FD0DE85C9B71EF672ED1584D573F31C7 /* Pods_Lumi_Light.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -206,7 +208,6 @@
 				08545D265B7C38FB70BE9E852B8C4649 /* Frameworks */,
 				EAAED30CCCBB3A20B4E6F4085A2E6AF5 /* Support Files */,
 			);
-			name = MediaPipeTasksGenAIC;
 			path = MediaPipeTasksGenAIC;
 			sourceTree = "<group>";
 		};
@@ -216,7 +217,6 @@
 				9A72BEBF637291F396B702D26D1BCFE3 /* Frameworks */,
 				0FBF52D3F1327B5800BF60109D9EED69 /* Support Files */,
 			);
-			name = MediaPipeTasksGenAI;
 			path = MediaPipeTasksGenAI;
 			sourceTree = "<group>";
 		};
@@ -251,7 +251,7 @@
 			);
 			name = "Pods-Lumi Light";
 			productName = Pods_Lumi_Light;
-			productReference = FD0DE85C9B71EF672ED1584D573F31C7 /* Pods-Lumi Light */;
+			productReference = FD0DE85C9B71EF672ED1584D573F31C7 /* Pods_Lumi_Light.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -260,8 +260,9 @@
 		BFDFE7DC352907FC980B868725387E98 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 1630;
 			};
 			buildConfigurationList = 4821239608C13582E20E6DA73FD5F1F9 /* Build configuration list for PBXProject "Pods" */;
 			compatibilityVersion = "Xcode 16.0";
@@ -272,8 +273,6 @@
 				en,
 			);
 			mainGroup = CF1408CF629C7361332E53B88F7BD30C;
-			minimizedProjectReferenceProxies = 0;
-			preferredProjectObjectVersion = 77;
 			productRefGroup = 49BD1680D3DE95668E32814C4CE3E792 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -304,9 +303,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/MediaPipeTasksGenAIC/MediaPipeTasksGenAIC-xcframeworks-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy XCFrameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/MediaPipeTasksGenAIC/MediaPipeTasksGenAIC-xcframeworks-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -321,9 +324,13 @@
 			inputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/MediaPipeTasksGenAI/MediaPipeTasksGenAI-xcframeworks-input-files.xcfilelist",
 			);
+			inputPaths = (
+			);
 			name = "[CP] Copy XCFrameworks";
 			outputFileListPaths = (
 				"${PODS_ROOT}/Target Support Files/MediaPipeTasksGenAI/MediaPipeTasksGenAI-xcframeworks-output-files.xcfilelist",
+			);
+			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -365,7 +372,7 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		0740220B8FC09487DB71179C537DEC91 /* Debug */ = {
+		015AAE9B718247730A90F2DE13C47223 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 317800DF14CB72AE31435620064DAEB0 /* MediaPipeTasksGenAIC.debug.xcconfig */;
 			buildSettings = {
@@ -373,7 +380,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -383,15 +390,15 @@
 			};
 			name = Debug;
 		};
-		405BF530175B10538D20E66828AB30D0 /* Release */ = {
+		50D230282EF1BC3C808FA2C6838CA314 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 75F85B38CAB9F00FE0F2993BE8BC3A8D /* MediaPipeTasksGenAIC.release.xcconfig */;
+			baseConfigurationReference = 27EAFAE4D83F697296D338987F8C2144 /* MediaPipeTasksGenAI.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -406,17 +413,14 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E4EF682FD2F4D95EA528C89368EEF709 /* Pods-Lumi Light.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -428,6 +432,7 @@
 				);
 				MACH_O_TYPE = staticlib;
 				MODULEMAP_FILE = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.modulemap";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PODS_ROOT = "$(SRCROOT)";
@@ -477,6 +482,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -500,7 +506,6 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_INSTALLED_PRODUCT = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -508,7 +513,7 @@
 			};
 			name = Debug;
 		};
-		6C0AF5A43757C4BDA304932E0193A1F4 /* Debug */ = {
+		A84895C979D11B2D017488BCC749CBFB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 069BD7EF4461100BFA5972BF3882EE78 /* MediaPipeTasksGenAI.debug.xcconfig */;
 			buildSettings = {
@@ -516,7 +521,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -526,15 +531,15 @@
 			};
 			name = Debug;
 		};
-		CE4BD0A586B49FB27DF8823A7594D2A5 /* Release */ = {
+		CEA613D518B5457660FCB276CE7D8C55 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 27EAFAE4D83F697296D338987F8C2144 /* MediaPipeTasksGenAI.release.xcconfig */;
+			baseConfigurationReference = 75F85B38CAB9F00FE0F2993BE8BC3A8D /* MediaPipeTasksGenAIC.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -580,6 +585,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -599,7 +605,6 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRIP_INSTALLED_PRODUCT = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -611,17 +616,14 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = FEB4F5B408E2C366447E044D62BB7E78 /* Pods-Lumi Light.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CODE_SIGN_IDENTITY = "";
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				ENABLE_MODULE_VERIFIER = NO;
+				ENABLE_MODULE_VERIFIER = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				INFOPLIST_FILE = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light-Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -633,6 +635,7 @@
 				);
 				MACH_O_TYPE = staticlib;
 				MODULEMAP_FILE = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.modulemap";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				OTHER_LDFLAGS = "";
 				OTHER_LIBTOOLFLAGS = "";
 				PODS_ROOT = "$(SRCROOT)";
@@ -670,8 +673,8 @@
 		9A1F9ECE6588D7EE7986639F7586C7F0 /* Build configuration list for PBXAggregateTarget "MediaPipeTasksGenAI" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6C0AF5A43757C4BDA304932E0193A1F4 /* Debug */,
-				CE4BD0A586B49FB27DF8823A7594D2A5 /* Release */,
+				A84895C979D11B2D017488BCC749CBFB /* Debug */,
+				50D230282EF1BC3C808FA2C6838CA314 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -679,8 +682,8 @@
 		FD37D86521860A548285AC98F8321FF9 /* Build configuration list for PBXAggregateTarget "MediaPipeTasksGenAIC" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				0740220B8FC09487DB71179C537DEC91 /* Debug */,
-				405BF530175B10538D20E66828AB30D0 /* Release */,
+				015AAE9B718247730A90F2DE13C47223 /* Debug */,
+				CEA613D518B5457660FCB276CE7D8C55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

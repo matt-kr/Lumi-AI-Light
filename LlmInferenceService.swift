@@ -1,285 +1,221 @@
 import SwiftUI
 import Combine
-@preconcurrency import MediaPipeTasksGenAI // Ensure this import matches your project setup
+@preconcurrency import MediaPipeTasksGenAI
+
+// NOTE: ChatMessage & Sender are NOT included here.
+// Ensure they are defined elsewhere in your project.
 
 @MainActor
 class LlmInferenceService: ObservableObject {
-    // MARK: - Properties (Ensure these are all present at the top of your class)
+    // MARK: - Stored Properties
     private var llmInference: LlmInference?
     private let modelName: String
-    private let modelExtension: String = "tflite"
+    private let modelExtension = "tflite"
+    private let maxTokensConfig = 2048
+    private var modelPath: String?
 
     @Published var conversation: [ChatMessage] = []
-    @Published var isLoading: Bool = false
+    @Published var isLoadingResponse = false
     @Published var initErrorMessage: String?
 
-    private let maxTokensConfig: Int = 2048 // You had this in your original code
+    @Published private(set) var isModelReady = false
+    @Published private(set) var isLoadingModel = false
+
     private var currentStreamingTask: Task<Void, Never>?
+    // Define both delay durations
+    private let firstPromptDelayNanos: UInt64 = 200_000_000 // 200 milliseconds
+    private let subsequentPromptDelayNanos: UInt64 = 50_000_000 // 50 milliseconds
+    
+    private var isFirstPromptAfterInit = true // Flag for the delay
 
-    // MARK: - Initialization
-    init(modelName: String = "gemma-2b-it-gpu-int8") { // Ensure your init is like this
+    // MARK: - Init
+    init(modelName: String = "gemma-2b-it-gpu-int8") {
         self.modelName = modelName
-        self.setupLlm(isInitialSetup: true)
+        print("LlmInferenceService initialized. Call initializeAndLoadModel() to prepare.")
     }
 
-    // MARK: - Setup
-    private func setupLlm(isInitialSetup: Bool = false) {
-        // ... (Your existing setupLlm implementation)
-        // For example:
-        if !isInitialSetup && self.llmInference != nil {
-            print("Deallocating previous LlmInference engine instance for re-initialization.")
-            self.llmInference = nil
-        } else if !isInitialSetup && self.llmInference == nil {
-            print("LLM instance was already nil before re-initialization attempt.")
-        }
+    // MARK: - Model Setup
+    func initializeAndLoadModel() {
+        guard !isModelReady, !isLoadingModel else { return }
+        print("Starting initial model setup...")
+        isLoadingModel = true
         
-        print(isInitialSetup ? "Attempting initial LLM setup..." : "Setting up LlmInference engine (maxTokens: \(self.maxTokensConfig))...")
-
-        guard let modelPath = Bundle.main.path(forResource: self.modelName, ofType: self.modelExtension) else {
-            let errorMsg = "CRITICAL ERROR: Failed to find model file: '\(self.modelName).\(self.modelExtension)'."
-            print(errorMsg)
-            self.initErrorMessage = errorMsg
-            if isInitialSetup || self.conversation.filter({ $0.sender == .error(isCritical: true) }).isEmpty {
-                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: errorMsg))
+        Task(priority: .userInitiated) {
+            defer { Task { @MainActor in self.isLoadingModel = false } }
+            guard let foundPath = Bundle.main.path(forResource: modelName, ofType: modelExtension) else {
+                let errorMsg = "CRITICAL ERROR: Model file '\(modelName).\(modelExtension)' not found."
+                print(errorMsg); await MainActor.run { self.initErrorMessage = errorMsg; self.isModelReady = false; self.modelPath = nil }; return
             }
-            self.llmInference = nil
-            return
-        }
-        if isInitialSetup { print("Model path found: \(modelPath)") }
-
-        let options = LlmInference.Options(modelPath: modelPath)
-        options.maxTokens = self.maxTokensConfig
-        
-        do {
-            print("Initializing LlmInference instance with options (maxTokens: \(options.maxTokens))...")
-            self.llmInference = try LlmInference(options: options)
-            let successMsg = isInitialSetup ? "LlmInference initialized successfully." : "LlmInference (re-)initialized successfully."
-            print(successMsg)
-            self.initErrorMessage = nil
-        } catch {
-            let errorMsg = "Failed to initialize LlmInference: \(error.localizedDescription)."
-            print(errorMsg)
-            self.initErrorMessage = errorMsg
-            if isInitialSetup || self.conversation.filter({ $0.sender == .error(isCritical: true) }).isEmpty {
-                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: errorMsg))
-            }
-            self.llmInference = nil
-        }
-    }
-
-    // MARK: - Chat Management
-    func startNewChat() {
-        // ... (Your existing startNewChat implementation, ensuring self. is used)
-        // For example:
-        self.stopGeneration()
-        self.conversation.removeAll()
-        self.isLoading = false
-        self.initErrorMessage = nil
-        print("New chat started. Forcing LLM re-setup for a clean slate.")
-        self.setupLlm(isInitialSetup: false)
-    }
-
-    // MARK: - Response Generation (Corrected Function)
-    func generateResponseStreaming(prompt: String) {
-        if let criticalError = self.initErrorMessage { // Uses self.
-            print("Cannot generate response due to existing critical initialization error: \(criticalError)")
-            if self.conversation.last?.text != criticalError && self.conversation.last?.sender != .error(isCritical: true) { // Uses self.
-                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: criticalError)) // Uses self.
-            }
-            return
-        }
-
-        guard self.currentStreamingTask == nil else { // Uses self.
-            let errMsg = "A response is already being generated by the app. Please wait."
-            print(errMsg)
-            return
-        }
-        
-        guard !self.isLoading else { // Uses self.
-            print("Streaming request attempted while 'isLoading' is true (UI or state inconsistency).")
-            return
-        }
-
-        print("Preparing for new stream. Re-initializing LLM engine proactively.")
-        self.setupLlm(isInitialSetup: false) // Uses self.
-
-        guard let llmForTask = self.llmInference else { // Uses self.
-            let errMsg = self.initErrorMessage ?? "LLM Inference service became unavailable after re-setup attempt. Please try starting a new chat." // Uses self.
-            print("LLM re-initialization failed or instance is nil before streaming.")
-            if self.conversation.last?.text != errMsg { // Uses self.
-                self.conversation.append(ChatMessage(sender: .error(), text: errMsg)) // Uses self.
-            }
-            self.isLoading = false // Uses self.
-            return
-        }
-        
-        let maxTurnsToRemember = 10
-        let actualMessagesToFetch = maxTurnsToRemember * 4
-
-        let historyStartIndex = max(0, self.conversation.count - actualMessagesToFetch) // Uses self.
-        let recentMessagesForHistory = Array(self.conversation[historyStartIndex..<self.conversation.count]) // Uses self.
-
-        var formattedHistoryForPrompt = ""
-        for message in recentMessagesForHistory {
-            if message.sender == .user {
-                formattedHistoryForPrompt += "<start_of_turn>user\n\(message.text)<end_of_turn>\n"
-            } else if message.sender == .lumi {
-                formattedHistoryForPrompt += "<start_of_turn>model\n\(message.text)<end_of_turn>\n"
-            }
-        }
-
-        let currentUserTurnFormatted = "<start_of_turn>user\n\(prompt)<end_of_turn>\n"
-        let modelTurnStartMarker = "<start_of_turn>model\n"
-        let systemInstruction = "You are Lumi, a friendly and concise human like assistant. Your primary user is Matt. If you don't know an answer do not make up an answer. Do no repeat back a query when answering. Pay close attention to the preceding conversation turns provided in the history to maintain context."
-
-        let finalPrompt = "\(systemInstruction)\n\(formattedHistoryForPrompt)\(currentUserTurnFormatted)\(modelTurnStartMarker)"
-        
-        print("-------------------------------------------")
-        print("DEBUG: Full prompt being sent to LLM:")
-        print(finalPrompt)
-        print("-------------------------------------------")
-        
-        let userMessage = ChatMessage(sender: .user, text: prompt)
-        self.conversation.append(userMessage) // Uses self.
-
-        self.isLoading = true // Uses self.
-        
-        print("Generating streaming response for final prompt (first 200 chars): \(String(finalPrompt.prefix(200)))...")
-
-        var lumiMessageIndex: Int? = nil
-        let initialLumiMessage = ChatMessage(sender: .lumi, text: "")
-        self.conversation.append(initialLumiMessage) // Uses self.
-        lumiMessageIndex = self.conversation.count - 1 // Uses self.
-
-        self.currentStreamingTask = Task { // Uses self.
-            var accumulatedResponseInTask = ""
-            var taskError: Error? = nil
-            var responseReceived = false
-
-            do {
-                let responseStream = llmForTask.generateResponseAsync(inputText: finalPrompt)
-                for try await partialResult in responseStream {
-                    if Task.isCancelled {
-                        taskError = CancellationError()
-                        print("Streaming task was cancelled.")
-                        break
-                    }
-                    responseReceived = true
-                    accumulatedResponseInTask += partialResult
-                    let currentSnapshot = accumulatedResponseInTask
-                    
-                    await MainActor.run {
-                        if let idx = lumiMessageIndex, idx < self.conversation.count, self.conversation[idx].sender == .lumi {
-                            self.conversation[idx].text = currentSnapshot
-                        }
-                    }
-                }
-                if taskError == nil && responseReceived {
-                    print("Streaming finished successfully.")
-                } else if taskError == nil && !responseReceived {
-                    print("Stream ended without any response data.")
-                }
-            } catch {
-                taskError = error
-                print("Error during streaming on background task: \(error.localizedDescription)")
-            }
-
+            self.modelPath = foundPath
+            let success = await createLlmInstance()
             await MainActor.run {
-                if let idx = lumiMessageIndex, idx < self.conversation.count {
-                    if self.conversation[idx].sender == .lumi {
-                        if let error = taskError {
-                            let nsError = error as NSError
-                            var displayMessage: String
-                            var messageSenderType: Sender = .error()
+                self.isModelReady = success
+                self.initErrorMessage = success ? nil : (self.initErrorMessage ?? "Setup failed.")
+                self.isFirstPromptAfterInit = true // Reset on init
+                print(success ? "Initial model setup successful." : "Initial model setup failed.")
+            }
+        }
+    }
 
-                            if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled || error is CancellationError {
-                                displayMessage = "(Stopped by user)"
-                                messageSenderType = .info
-                                if self.conversation[idx].text.isEmpty { self.conversation.remove(at: idx); /* lumiMessageIndex = nil */ }
-                                else { self.conversation[idx].text += "\n" + displayMessage }
-                            } else {
-                                displayMessage = "Error: \(error.localizedDescription)"
-                                if self.conversation[idx].text.isEmpty {
-                                    self.conversation[idx].text = displayMessage
-                                    self.conversation[idx].sender = messageSenderType
-                                } else {
-                                    self.conversation[idx].text += "\n\n\(displayMessage)"
-                                }
-                            }
-                        } else if !responseReceived && self.conversation[idx].text.isEmpty {
-                            self.conversation[idx].sender = .info
-                            self.conversation[idx].text = "(Lumi provided no response)"
-                        }
-                    }
-                } else if let error = taskError, !(error is CancellationError) {
-                    let errorMsg = "Streaming error (orphaned): \(error.localizedDescription)"
-                     if self.conversation.last?.text != errorMsg {
-                        self.conversation.append(ChatMessage(sender: .error(), text: errorMsg))
+    // MARK: - Engine Creation
+    private func createLlmInstance() async -> Bool {
+        guard let path = self.modelPath else {
+            print("Engine creation failed: Model path not found."); await MainActor.run { self.initErrorMessage = "Model path not available." }; return false
+        }
+        print("[BEGIN] Creating LlmInference instance...")
+        self.llmInference = nil
+        do {
+            let opts = LlmInference.Options(modelPath: path)
+            opts.maxTokens = maxTokensConfig
+            let engine = try LlmInference(options: opts)
+            self.llmInference = engine
+            print("[END] LlmInference instance created successfully.")
+            return true
+        } catch {
+            let errorMsg = "Failed to create LlmInference instance: \(error.localizedDescription)"
+            print("[END] LlmInference instance creation FAILED: \(errorMsg)")
+            self.initErrorMessage = errorMsg; self.llmInference = nil; return false
+        }
+    }
+
+    // MARK: - New chat
+    func startNewChat() {
+        stopGeneration()
+        self.conversation.removeAll()
+        self.isLoadingResponse = false
+        self.isFirstPromptAfterInit = true // Reset for new chat
+        print("New chat started.")
+    }
+
+    // MARK: - Generate response
+    func generateResponseStreaming(prompt: String) {
+        guard self.modelPath != nil else { appendError(self.initErrorMessage ?? "Model not ready.", isCritical: true); return }
+        guard self.currentStreamingTask == nil else { print("Already generating."); return }
+        guard !self.isLoadingResponse else { print("Inconsistent state (isLoading)."); self.isLoadingResponse = false; return }
+
+        appendUserMessage(prompt)
+        self.isLoadingResponse = true
+
+        // Determine which delay to use and update the flag
+        let delayNanos: UInt64
+        if self.isFirstPromptAfterInit {
+            delayNanos = firstPromptDelayNanos
+            self.isFirstPromptAfterInit = false // Set to false *after* first use
+        } else {
+            delayNanos = subsequentPromptDelayNanos
+        }
+
+        Task {
+            // Apply the determined delay
+            print("[UI] Applying delay (\(delayNanos / 1_000_000)ms) to allow UI update...")
+            try? await Task.sleep(nanoseconds: delayNanos)
+            print("[UI] Delay finished.")
+
+            print("[LlmService] Preparing engine...")
+            let instanceCreated = await createLlmInstance()
+
+            guard instanceCreated, let llmEngineToUse = self.llmInference else {
+                print("[LlmService] Failed to create engine instance.")
+                await MainActor.run {
+                    appendError(self.initErrorMessage ?? "Failed to prepare engine.", isCritical: true)
+                    self.isLoadingResponse = false
+                }
+                return
+            }
+            
+            let historyPrompt = buildHistoryPrompt(with: prompt)
+            
+            self.currentStreamingTask = Task {
+                defer {
+                    Task { @MainActor in
+                        print("[LlmService DEFER] Resetting state.")
+                        self.isLoadingResponse = false
+                        self.currentStreamingTask = nil
                     }
                 }
 
-                self.isLoading = false // Uses self.
-                self.currentStreamingTask = nil // Uses self.
-                print("Stream processing finished. isLoading set to false, currentStreamingTask cleared.")
+                var taskError: Error? = nil; var responseReceived = false; var accumulatedResponseText = ""
+
+                do {
+                    print("[LlmService TASK] Starting stream...")
+                    let responseStream = llmEngineToUse.generateResponseAsync(inputText: historyPrompt)
+                    for try await chunk in responseStream {
+                        if Task.isCancelled { throw CancellationError() }
+                        responseReceived = true; accumulatedResponseText += chunk
+                        await MainActor.run { self.appendOrUpdateLumiText(accumulatedResponseText) }
+                    }
+                    print("[LlmService TASK] Stream finished.")
+                } catch {
+                    taskError = error; print("[LlmService TASK] Caught error: \(error.localizedDescription)")
+                }
+
+                await MainActor.run {
+                    print("[LlmService TASK] Finalizing stream.")
+                    self.finalizeStream(taskError, gotData: responseReceived, finalAccumulatedText: accumulatedResponseText)
+                }
             }
         }
     }
 
-    // MARK: - Stop Generation
+    // MARK: - Stop generation
     func stopGeneration() {
-        // ... (Your existing stopGeneration implementation, ensuring self. is used)
-        // For example:
-        if let task = self.currentStreamingTask {
-            if !task.isCancelled {
-                task.cancel()
-                print("Stop generation requested. Task cancellation initiated.")
+        print("[LlmService STOP] Stop generation requested.")
+        currentStreamingTask?.cancel()
+    }
+
+    // MARK: - Helper Methods
+    private func buildHistoryPrompt(with userPrompt: String) -> String {
+        let maxTurns = 10
+        let messagesToConsider = min(conversation.count, maxTurns * 2 + 20)
+        let startIdx = max(0, conversation.count - messagesToConsider)
+        let historySlice = conversation[startIdx...]
+        let history = historySlice.map { msg -> String in
+            switch msg.sender {
+            case .user: return "<start_of_turn>user\n\(msg.text)<end_of_turn>\n"
+            case .lumi: return "<start_of_turn>model\n\(msg.text)<end_of_turn>\n"
+            default:    return ""
+            }
+        }.joined()
+        let sys = "You are Lumi, a friendly and concise human like assistant. Your primary user is Matt. If you don't know an answer do not make one up. Do not repeat back a query when answering. Pay close attention to the conversation history."
+        return "\(sys)\n\(history)<start_of_turn>user\n\(userPrompt)<end_of_turn>\n<start_of_turn>model\n"
+    }
+
+    private func appendUserMessage(_ text: String) {
+        conversation.append(ChatMessage(sender: .user, text: text))
+        conversation.append(ChatMessage(sender: .lumi, text: ""))
+    }
+    
+    private func appendError(_ text: String, isCritical: Bool) {
+        if conversation.last?.text != text || conversation.last?.sender != .error(isCritical: isCritical) {
+            conversation.append(ChatMessage(sender: .error(isCritical: isCritical), text: text))
+        }
+    }
+
+    private func appendOrUpdateLumiText(_ newFullAccumulatedText: String) {
+        if let idx = conversation.lastIndex(where: { $0.sender == .lumi }) {
+            conversation[idx].text = newFullAccumulatedText
+        }
+    }
+
+    private func finalizeStream(_ error: Error?, gotData: Bool, finalAccumulatedText: String) {
+        guard let idx = conversation.lastIndex(where: { $0.sender == .lumi }) else {
+            if let err = error, !(err is CancellationError) { appendError("Lumi error (context lost): \(err.localizedDescription)", isCritical: false) }
+            return
+        }
+        let lumiMessage = conversation[idx]
+        if let err = error {
+            if err is CancellationError {
+                if lumiMessage.text.isEmpty { conversation.remove(at: idx) }
+                else if !lumiMessage.text.contains("(Stopped") { conversation[idx].text += "\n(Stopped by user)"; conversation[idx].sender = .info }
             } else {
-                print("Stop generation requested, but task was already cancelled.")
+                let errorText = "\n\nError: \(err.localizedDescription)"
+                conversation[idx].text = (lumiMessage.text.isEmpty ? "" : lumiMessage.text) + errorText
+                conversation[idx].sender = .error()
             }
-        } else {
-            print("Stop generation requested, but no active streaming task found.")
-            if self.isLoading { // Check isLoading with self.
-                self.isLoading = false // Update isLoading with self.
-                print("isLoading was true with no task, reset to false during stopGeneration.")
-            }
+        } else if !gotData && lumiMessage.text.isEmpty {
+            conversation[idx].text = "(Lumi provided no response)"; conversation[idx].sender = .info
+        } else if gotData && error == nil {
+            conversation[idx].text = finalAccumulatedText
         }
     }
 }
-
-// Reminder: Ensure your ChatMessage and Sender types are defined correctly.
-// For example:
-/*
-struct ChatMessage: Identifiable, Equatable { // Added Equatable for comparisons like `last?.sender != .error()`
-    let id = UUID()
-    var sender: Sender
-    var text: String
-
-    // If you need to compare ChatMessage instances directly, implement Equatable
-    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
-        lhs.id == rhs.id // Or other relevant properties
-    }
-}
-
-enum Sender: Equatable {
-    case user
-    case lumi
-    case error(isCritical: Bool = false)
-    case info
-
-    // Custom Equatable for Sender to handle associated values if needed for `!= .error(isCritical: true)`
-    static func == (lhs: Sender, rhs: Sender) -> Bool {
-        switch (lhs, rhs) {
-        case (.user, .user):
-            return true
-        case (.lumi, .lumi):
-            return true
-        case let (.error(lhsCritical), .error(rhsCritical)):
-            return lhsCritical == rhsCritical
-        case (.info, .info):
-            return true
-        default:
-            return false
-        }
-    }
-}
-*/
