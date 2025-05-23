@@ -4,29 +4,32 @@ import Combine
 
 @MainActor
 class LlmInferenceService: ObservableObject {
-
+    // MARK: - Properties (Ensure these are all present at the top of your class)
     private var llmInference: LlmInference?
     private let modelName: String
     private let modelExtension: String = "tflite"
 
-    // Use your existing ChatMessage struct
     @Published var conversation: [ChatMessage] = []
     @Published var isLoading: Bool = false
-    @Published var initErrorMessage: String? // For critical initialization errors
+    @Published var initErrorMessage: String?
 
-    private let maxTokensConfig: Int = 256
+    private let maxTokensConfig: Int = 2048 // You had this in your original code
     private var currentStreamingTask: Task<Void, Never>?
 
-    init(modelName: String = "gemma-2b-it-gpu-int8") { // Ensure this matches your model name
+    // MARK: - Initialization
+    init(modelName: String = "gemma-2b-it-gpu-int8") { // Ensure your init is like this
         self.modelName = modelName
-        setupLlm(isInitialSetup: true)
+        self.setupLlm(isInitialSetup: true)
     }
 
+    // MARK: - Setup
     private func setupLlm(isInitialSetup: Bool = false) {
-        if !isInitialSetup && llmInference != nil {
+        // ... (Your existing setupLlm implementation)
+        // For example:
+        if !isInitialSetup && self.llmInference != nil {
             print("Deallocating previous LlmInference engine instance for re-initialization.")
-            llmInference = nil
-        } else if !isInitialSetup && llmInference == nil {
+            self.llmInference = nil
+        } else if !isInitialSetup && self.llmInference == nil {
             print("LLM instance was already nil before re-initialization attempt.")
         }
         
@@ -36,7 +39,6 @@ class LlmInferenceService: ObservableObject {
             let errorMsg = "CRITICAL ERROR: Failed to find model file: '\(self.modelName).\(self.modelExtension)'."
             print(errorMsg)
             self.initErrorMessage = errorMsg
-            // Use your existing Sender type for error messages
             if isInitialSetup || self.conversation.filter({ $0.sender == .error(isCritical: true) }).isEmpty {
                 self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: errorMsg))
             }
@@ -50,7 +52,7 @@ class LlmInferenceService: ObservableObject {
         
         do {
             print("Initializing LlmInference instance with options (maxTokens: \(options.maxTokens))...")
-            llmInference = try LlmInference(options: options)
+            self.llmInference = try LlmInference(options: options)
             let successMsg = isInitialSetup ? "LlmInference initialized successfully." : "LlmInference (re-)initialized successfully."
             print(successMsg)
             self.initErrorMessage = nil
@@ -58,76 +60,98 @@ class LlmInferenceService: ObservableObject {
             let errorMsg = "Failed to initialize LlmInference: \(error.localizedDescription)."
             print(errorMsg)
             self.initErrorMessage = errorMsg
-            // Use your existing Sender type for error messages
             if isInitialSetup || self.conversation.filter({ $0.sender == .error(isCritical: true) }).isEmpty {
-                 self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: errorMsg))
+                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: errorMsg))
             }
             self.llmInference = nil
         }
     }
-    
+
+    // MARK: - Chat Management
     func startNewChat() {
-        stopGeneration()
-        conversation.removeAll()
-        isLoading = false
-        initErrorMessage = nil
+        // ... (Your existing startNewChat implementation, ensuring self. is used)
+        // For example:
+        self.stopGeneration()
+        self.conversation.removeAll()
+        self.isLoading = false
+        self.initErrorMessage = nil
         print("New chat started. Forcing LLM re-setup for a clean slate.")
-        setupLlm(isInitialSetup: false)
+        self.setupLlm(isInitialSetup: false)
     }
 
+    // MARK: - Response Generation (Corrected Function)
     func generateResponseStreaming(prompt: String) {
-        if let criticalError = self.initErrorMessage {
+        if let criticalError = self.initErrorMessage { // Uses self.
             print("Cannot generate response due to existing critical initialization error: \(criticalError)")
-            // Use your existing Sender type
-            if conversation.last?.text != criticalError && conversation.last?.sender != .error(isCritical: true) {
-                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: criticalError))
+            if self.conversation.last?.text != criticalError && self.conversation.last?.sender != .error(isCritical: true) { // Uses self.
+                self.conversation.append(ChatMessage(sender: .error(isCritical: true), text: criticalError)) // Uses self.
             }
             return
         }
 
-        guard currentStreamingTask == nil else {
+        guard self.currentStreamingTask == nil else { // Uses self.
             let errMsg = "A response is already being generated by the app. Please wait."
             print(errMsg)
             return
         }
         
-        guard !self.isLoading else {
+        guard !self.isLoading else { // Uses self.
             print("Streaming request attempted while 'isLoading' is true (UI or state inconsistency).")
             return
         }
 
         print("Preparing for new stream. Re-initializing LLM engine proactively.")
-        setupLlm(isInitialSetup: false)
+        self.setupLlm(isInitialSetup: false) // Uses self.
 
-        guard let llmForTask = self.llmInference else {
-            let errMsg = self.initErrorMessage ?? "LLM Inference service became unavailable after re-setup attempt. Please try starting a new chat."
+        guard let llmForTask = self.llmInference else { // Uses self.
+            let errMsg = self.initErrorMessage ?? "LLM Inference service became unavailable after re-setup attempt. Please try starting a new chat." // Uses self.
             print("LLM re-initialization failed or instance is nil before streaming.")
-            // Use your existing Sender type
-            if conversation.last?.text != errMsg {
-                self.conversation.append(ChatMessage(sender: .error(), text: errMsg))
+            if self.conversation.last?.text != errMsg { // Uses self.
+                self.conversation.append(ChatMessage(sender: .error(), text: errMsg)) // Uses self.
             }
-            self.isLoading = false
+            self.isLoading = false // Uses self.
             return
         }
         
-        // Use your existing Sender type
-        let userMessage = ChatMessage(sender: .user, text: prompt)
-        self.conversation.append(userMessage)
+        let maxTurnsToRemember = 10
+        let actualMessagesToFetch = maxTurnsToRemember * 4
 
-        self.isLoading = true
+        let historyStartIndex = max(0, self.conversation.count - actualMessagesToFetch) // Uses self.
+        let recentMessagesForHistory = Array(self.conversation[historyStartIndex..<self.conversation.count]) // Uses self.
 
-        let systemInstruction = "You are Lumi, a friendly and concise human like assistant. Your primary user is Matt. If you don't know an answer do not make up an answer. Do no repeat back a query when answering."
-        let finalPrompt = systemInstruction + prompt
+        var formattedHistoryForPrompt = ""
+        for message in recentMessagesForHistory {
+            if message.sender == .user {
+                formattedHistoryForPrompt += "<start_of_turn>user\n\(message.text)<end_of_turn>\n"
+            } else if message.sender == .lumi {
+                formattedHistoryForPrompt += "<start_of_turn>model\n\(message.text)<end_of_turn>\n"
+            }
+        }
+
+        let currentUserTurnFormatted = "<start_of_turn>user\n\(prompt)<end_of_turn>\n"
+        let modelTurnStartMarker = "<start_of_turn>model\n"
+        let systemInstruction = "You are Lumi, a friendly and concise human like assistant. Your primary user is Matt. If you don't know an answer do not make up an answer. Do no repeat back a query when answering. Pay close attention to the preceding conversation turns provided in the history to maintain context."
+
+        let finalPrompt = "\(systemInstruction)\n\(formattedHistoryForPrompt)\(currentUserTurnFormatted)\(modelTurnStartMarker)"
         
-        print("Generating streaming response for final prompt (first 80 chars): \(String(finalPrompt.prefix(80)))...")
+        print("-------------------------------------------")
+        print("DEBUG: Full prompt being sent to LLM:")
+        print(finalPrompt)
+        print("-------------------------------------------")
+        
+        let userMessage = ChatMessage(sender: .user, text: prompt)
+        self.conversation.append(userMessage) // Uses self.
+
+        self.isLoading = true // Uses self.
+        
+        print("Generating streaming response for final prompt (first 200 chars): \(String(finalPrompt.prefix(200)))...")
 
         var lumiMessageIndex: Int? = nil
-        // Use your existing Sender type
         let initialLumiMessage = ChatMessage(sender: .lumi, text: "")
-        conversation.append(initialLumiMessage)
-        lumiMessageIndex = conversation.count - 1
+        self.conversation.append(initialLumiMessage) // Uses self.
+        lumiMessageIndex = self.conversation.count - 1 // Uses self.
 
-        currentStreamingTask = Task {
+        self.currentStreamingTask = Task { // Uses self.
             var accumulatedResponseInTask = ""
             var taskError: Error? = nil
             var responseReceived = false
@@ -145,14 +169,13 @@ class LlmInferenceService: ObservableObject {
                     let currentSnapshot = accumulatedResponseInTask
                     
                     await MainActor.run {
-                        // Use your existing Sender type
                         if let idx = lumiMessageIndex, idx < self.conversation.count, self.conversation[idx].sender == .lumi {
                             self.conversation[idx].text = currentSnapshot
                         }
                     }
                 }
                 if taskError == nil && responseReceived {
-                     print("Streaming finished successfully.")
+                    print("Streaming finished successfully.")
                 } else if taskError == nil && !responseReceived {
                     print("Stream ended without any response data.")
                 }
@@ -163,51 +186,50 @@ class LlmInferenceService: ObservableObject {
 
             await MainActor.run {
                 if let idx = lumiMessageIndex, idx < self.conversation.count {
-                    // Use your existing Sender type
                     if self.conversation[idx].sender == .lumi {
                         if let error = taskError {
                             let nsError = error as NSError
                             var displayMessage: String
-                            // Use your existing Sender type
-                            var messageSenderType: Sender = .error() // Corrected variable name
+                            var messageSenderType: Sender = .error()
 
                             if nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled || error is CancellationError {
                                 displayMessage = "(Stopped by user)"
-                                messageSenderType = .info // Corrected variable name
-                                if self.conversation[idx].text.isEmpty { self.conversation.remove(at: idx); lumiMessageIndex = nil }
+                                messageSenderType = .info
+                                if self.conversation[idx].text.isEmpty { self.conversation.remove(at: idx); /* lumiMessageIndex = nil */ }
                                 else { self.conversation[idx].text += "\n" + displayMessage }
                             } else {
                                 displayMessage = "Error: \(error.localizedDescription)"
                                 if self.conversation[idx].text.isEmpty {
-                                     self.conversation[idx].text = displayMessage
-                                     self.conversation[idx].sender = messageSenderType // Use corrected variable name
+                                    self.conversation[idx].text = displayMessage
+                                    self.conversation[idx].sender = messageSenderType
                                 } else {
-                                     self.conversation[idx].text += "\n\n\(displayMessage)"
+                                    self.conversation[idx].text += "\n\n\(displayMessage)"
                                 }
                             }
                         } else if !responseReceived && self.conversation[idx].text.isEmpty {
-                            // Use your existing Sender type
                             self.conversation[idx].sender = .info
                             self.conversation[idx].text = "(Lumi provided no response)"
                         }
                     }
                 } else if let error = taskError, !(error is CancellationError) {
                     let errorMsg = "Streaming error (orphaned): \(error.localizedDescription)"
-                    // Use your existing Sender type
                      if self.conversation.last?.text != errorMsg {
                         self.conversation.append(ChatMessage(sender: .error(), text: errorMsg))
                     }
                 }
 
-                self.isLoading = false
-                self.currentStreamingTask = nil
+                self.isLoading = false // Uses self.
+                self.currentStreamingTask = nil // Uses self.
                 print("Stream processing finished. isLoading set to false, currentStreamingTask cleared.")
             }
         }
     }
 
+    // MARK: - Stop Generation
     func stopGeneration() {
-        if let task = currentStreamingTask {
+        // ... (Your existing stopGeneration implementation, ensuring self. is used)
+        // For example:
+        if let task = self.currentStreamingTask {
             if !task.isCancelled {
                 task.cancel()
                 print("Stop generation requested. Task cancellation initiated.")
@@ -216,10 +238,48 @@ class LlmInferenceService: ObservableObject {
             }
         } else {
             print("Stop generation requested, but no active streaming task found.")
-            if isLoading {
-                isLoading = false
+            if self.isLoading { // Check isLoading with self.
+                self.isLoading = false // Update isLoading with self.
                 print("isLoading was true with no task, reset to false during stopGeneration.")
             }
         }
     }
 }
+
+// Reminder: Ensure your ChatMessage and Sender types are defined correctly.
+// For example:
+/*
+struct ChatMessage: Identifiable, Equatable { // Added Equatable for comparisons like `last?.sender != .error()`
+    let id = UUID()
+    var sender: Sender
+    var text: String
+
+    // If you need to compare ChatMessage instances directly, implement Equatable
+    static func == (lhs: ChatMessage, rhs: ChatMessage) -> Bool {
+        lhs.id == rhs.id // Or other relevant properties
+    }
+}
+
+enum Sender: Equatable {
+    case user
+    case lumi
+    case error(isCritical: Bool = false)
+    case info
+
+    // Custom Equatable for Sender to handle associated values if needed for `!= .error(isCritical: true)`
+    static func == (lhs: Sender, rhs: Sender) -> Bool {
+        switch (lhs, rhs) {
+        case (.user, .user):
+            return true
+        case (.lumi, .lumi):
+            return true
+        case let (.error(lhsCritical), .error(rhsCritical)):
+            return lhsCritical == rhsCritical
+        case (.info, .info):
+            return true
+        default:
+            return false
+        }
+    }
+}
+*/
