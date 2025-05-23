@@ -1,18 +1,13 @@
 import SwiftUI
 import Combine
-@preconcurrency import MediaPipeTasksGenAI
 
 // NOTE: ChatMessage & Sender are NOT included here.
-// Ensure they are defined elsewhere in your project.
 
 @MainActor
 class LlmInferenceService: ObservableObject {
     // MARK: - Stored Properties
-    private var llmInference: LlmInference?
+    private let worker: LlmWorker // Holds the reference to our background actor
     private let modelName: String
-    private let modelExtension = "tflite"
-    private let maxTokensConfig = 2048
-    private var modelPath: String?
 
     @Published var conversation: [ChatMessage] = []
     @Published var isLoadingResponse = false
@@ -22,59 +17,37 @@ class LlmInferenceService: ObservableObject {
     @Published private(set) var isLoadingModel = false
 
     private var currentStreamingTask: Task<Void, Never>?
-    // Define both delay durations
-    private let firstPromptDelayNanos: UInt64 = 200_000_000 // 200 milliseconds
-    private let subsequentPromptDelayNanos: UInt64 = 50_000_000 // 50 milliseconds
-    
-    private var isFirstPromptAfterInit = true // Flag for the delay
 
     // MARK: - Init
     init(modelName: String = "gemma-2b-it-gpu-int8") {
         self.modelName = modelName
-        print("LlmInferenceService initialized. Call initializeAndLoadModel() to prepare.")
+        self.worker = LlmWorker() // Create the actor instance
+        print("LlmInferenceService initialized. Call initializeAndLoadModel() to prepare worker.")
     }
 
-    // MARK: - Model Setup
+    // MARK: - Model Setup (Now configures the Worker)
     func initializeAndLoadModel() {
         guard !isModelReady, !isLoadingModel else { return }
-        print("Starting initial model setup...")
+        print("[Service] Starting initial model setup...")
         isLoadingModel = true
         
-        Task(priority: .userInitiated) {
+        Task {
             defer { Task { @MainActor in self.isLoadingModel = false } }
-            guard let foundPath = Bundle.main.path(forResource: modelName, ofType: modelExtension) else {
-                let errorMsg = "CRITICAL ERROR: Model file '\(modelName).\(modelExtension)' not found."
-                print(errorMsg); await MainActor.run { self.initErrorMessage = errorMsg; self.isModelReady = false; self.modelPath = nil }; return
+            
+            guard let foundPath = Bundle.main.path(forResource: modelName, ofType: "tflite") else {
+                let errorMsg = "CRITICAL ERROR: Model file '\(modelName).tflite' not found."
+                print(errorMsg); self.initErrorMessage = errorMsg; self.isModelReady = false; return
             }
-            self.modelPath = foundPath
-            let success = await createLlmInstance()
-            await MainActor.run {
-                self.isModelReady = success
-                self.initErrorMessage = success ? nil : (self.initErrorMessage ?? "Setup failed.")
-                self.isFirstPromptAfterInit = true // Reset on init
-                print(success ? "Initial model setup successful." : "Initial model setup failed.")
-            }
-        }
-    }
-
-    // MARK: - Engine Creation
-    private func createLlmInstance() async -> Bool {
-        guard let path = self.modelPath else {
-            print("Engine creation failed: Model path not found."); await MainActor.run { self.initErrorMessage = "Model path not available." }; return false
-        }
-        print("[BEGIN] Creating LlmInference instance...")
-        self.llmInference = nil
-        do {
-            let opts = LlmInference.Options(modelPath: path)
-            opts.maxTokens = maxTokensConfig
-            let engine = try LlmInference(options: opts)
-            self.llmInference = engine
-            print("[END] LlmInference instance created successfully.")
-            return true
-        } catch {
-            let errorMsg = "Failed to create LlmInference instance: \(error.localizedDescription)"
-            print("[END] LlmInference instance creation FAILED: \(errorMsg)")
-            self.initErrorMessage = errorMsg; self.llmInference = nil; return false
+            
+            // Tell the worker about the model path.
+            // We assume configuration itself is fast. The *loading* happens later.
+            await worker.configure(modelPath: foundPath, maxTokens: 2048)
+            
+            // For now, we'll assume "ready" means configured.
+            // A more robust way might have the worker signal back after first load.
+            self.isModelReady = true
+            self.initErrorMessage = nil
+            print("[Service] Initial model setup (configuration) successful.")
         }
     }
 
@@ -83,87 +56,79 @@ class LlmInferenceService: ObservableObject {
         stopGeneration()
         self.conversation.removeAll()
         self.isLoadingResponse = false
-        self.isFirstPromptAfterInit = true // Reset for new chat
-        print("New chat started.")
+        print("[Service] New chat started.")
     }
 
-    // MARK: - Generate response
+    // MARK: - Generate response (Delegates to Worker)
     func generateResponseStreaming(prompt: String) {
-        guard self.modelPath != nil else { appendError(self.initErrorMessage ?? "Model not ready.", isCritical: true); return }
-        guard self.currentStreamingTask == nil else { print("Already generating."); return }
-        guard !self.isLoadingResponse else { print("Inconsistent state (isLoading)."); self.isLoadingResponse = false; return }
+        guard self.isModelReady else { appendError("Lumi not ready.", isCritical: true); return }
+        guard self.currentStreamingTask == nil else { print("[Service] Already generating."); return }
+        guard !self.isLoadingResponse else { print("[Service] Inconsistent state (isLoading)."); self.isLoadingResponse = false; return }
 
+        // --- IMMEDIATE UI UPDATES ---
         appendUserMessage(prompt)
         self.isLoadingResponse = true
+        // --- END IMMEDIATE UI UPDATES ---
 
-        // Determine which delay to use and update the flag
-        let delayNanos: UInt64
-        if self.isFirstPromptAfterInit {
-            delayNanos = firstPromptDelayNanos
-            self.isFirstPromptAfterInit = false // Set to false *after* first use
-        } else {
-            delayNanos = subsequentPromptDelayNanos
-        }
+        let historyPrompt = buildHistoryPrompt(with: prompt)
 
-        Task {
-            // Apply the determined delay
-            print("[UI] Applying delay (\(delayNanos / 1_000_000)ms) to allow UI update...")
-            try? await Task.sleep(nanoseconds: delayNanos)
-            print("[UI] Delay finished.")
-
-            print("[LlmService] Preparing engine...")
-            let instanceCreated = await createLlmInstance()
-
-            guard instanceCreated, let llmEngineToUse = self.llmInference else {
-                print("[LlmService] Failed to create engine instance.")
-                await MainActor.run {
-                    appendError(self.initErrorMessage ?? "Failed to prepare engine.", isCritical: true)
+        // Create the task that will *listen* to the worker.
+        self.currentStreamingTask = Task {
+            print("[Service Task] Requesting stream from worker...")
+            
+            // This defer runs when THIS task finishes (success, error, or cancel)
+            defer {
+                Task { @MainActor in
+                    print("[Service DEFER] Resetting isLoadingResponse & currentStreamingTask.")
                     self.isLoadingResponse = false
-                }
-                return
-            }
-            
-            let historyPrompt = buildHistoryPrompt(with: prompt)
-            
-            self.currentStreamingTask = Task {
-                defer {
-                    Task { @MainActor in
-                        print("[LlmService DEFER] Resetting state.")
-                        self.isLoadingResponse = false
-                        self.currentStreamingTask = nil
-                    }
-                }
-
-                var taskError: Error? = nil; var responseReceived = false; var accumulatedResponseText = ""
-
-                do {
-                    print("[LlmService TASK] Starting stream...")
-                    let responseStream = llmEngineToUse.generateResponseAsync(inputText: historyPrompt)
-                    for try await chunk in responseStream {
-                        if Task.isCancelled { throw CancellationError() }
-                        responseReceived = true; accumulatedResponseText += chunk
-                        await MainActor.run { self.appendOrUpdateLumiText(accumulatedResponseText) }
-                    }
-                    print("[LlmService TASK] Stream finished.")
-                } catch {
-                    taskError = error; print("[LlmService TASK] Caught error: \(error.localizedDescription)")
-                }
-
-                await MainActor.run {
-                    print("[LlmService TASK] Finalizing stream.")
-                    self.finalizeStream(taskError, gotData: responseReceived, finalAccumulatedText: accumulatedResponseText)
+                    self.currentStreamingTask = nil
                 }
             }
+            
+            var responseReceived = false
+            var accumulatedResponseText = ""
+            var lastError: Error? = nil
+
+            do {
+                // Get the stream *from* the worker. This is fast.
+                let responseStream = await worker.generateResponse(prompt: historyPrompt)
+                
+                print("[Service Task] Awaiting chunks from worker stream...")
+                // Iterate over the stream. This *suspends* until chunks arrive.
+                for try await chunk in responseStream {
+                    // Check for cancellation *between* chunks.
+                    if Task.isCancelled {
+                         print("[Service Task] Task was cancelled by stopGeneration().")
+                         lastError = CancellationError()
+                         break // Exit the loop
+                    }
+                    responseReceived = true
+                    accumulatedResponseText += chunk
+                    // Since we are @MainActor, this is safe.
+                    self.appendOrUpdateLumiText(accumulatedResponseText)
+                }
+                print("[Service Task] Worker stream finished (or was cancelled).")
+
+            } catch {
+                print("[Service Task] Caught error from worker stream: \(error)")
+                lastError = error
+            }
+            
+            // Finalize on MainActor (we are already here, but good practice)
+            print("[Service Task] Finalizing stream.")
+            self.finalizeStream(lastError, gotData: responseReceived, finalAccumulatedText: accumulatedResponseText)
         }
     }
 
     // MARK: - Stop generation
     func stopGeneration() {
-        print("[LlmService STOP] Stop generation requested.")
-        currentStreamingTask?.cancel()
+        print("[Service STOP] Stop generation requested.")
+        currentStreamingTask?.cancel() // Cancel our *listening* task.
+        // This cancellation should propagate to the stream continuation
+        // allowing the worker's task to potentially stop early too.
     }
 
-    // MARK: - Helper Methods
+    // MARK: - Helper Methods (Same as before)
     private func buildHistoryPrompt(with userPrompt: String) -> String {
         let maxTurns = 10
         let messagesToConsider = min(conversation.count, maxTurns * 2 + 20)
@@ -204,11 +169,19 @@ class LlmInferenceService: ObservableObject {
         }
         let lumiMessage = conversation[idx]
         if let err = error {
-            if err is CancellationError {
+             // Handle our own WorkerError or MediaPipe's via WorkerError.engineError
+            let displayError: Error
+            if case LlmWorker.WorkerError.engineError(let underlyingError) = err {
+                displayError = underlyingError
+            } else {
+                displayError = err
+            }
+
+            if displayError is CancellationError {
                 if lumiMessage.text.isEmpty { conversation.remove(at: idx) }
                 else if !lumiMessage.text.contains("(Stopped") { conversation[idx].text += "\n(Stopped by user)"; conversation[idx].sender = .info }
             } else {
-                let errorText = "\n\nError: \(err.localizedDescription)"
+                let errorText = "\n\nError: \(displayError.localizedDescription)"
                 conversation[idx].text = (lumiMessage.text.isEmpty ? "" : lumiMessage.text) + errorText
                 conversation[idx].sender = .error()
             }
