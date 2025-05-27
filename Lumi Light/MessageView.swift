@@ -1,4 +1,6 @@
-//import SwiftUI
+import SwiftUI
+import Foundation
+import SwiftUICore // Assuming this is needed and correctly placed by you
 
 struct MessageView: View {
     let message: ChatMessage
@@ -29,9 +31,9 @@ struct MessageView: View {
                 
                 // Optional: Timestamp
                 // Text(message.timestamp, style: .time)
-                //    .font(.caption2)
-                //    .foregroundColor(Color.sl_textSecondary)
-                //    .padding(.horizontal, 5)
+                //     .font(.caption2)
+                //     .foregroundColor(Color.sl_textSecondary)
+                //     .padding(.horizontal, 5)
             }
             .fixedSize(horizontal: false, vertical: true) // Important for text wrapping
 
@@ -45,6 +47,9 @@ struct MessageView: View {
             .font(.custom(messageFontName, size: 16))
             .foregroundColor(textColorForSender(message.sender))
             .lineSpacing(3)
+            // --- ADD THIS MODIFIER FOR TEXT SELECTION ---
+            .textSelection(.enabled)
+            // --- END ADD ---
     }
 
     private func backgroundColorForSender(_ sender: Sender) -> Color {
@@ -70,11 +75,30 @@ struct MessageView: View {
         }
     }
 }
-//  MessageView.swift
-//  Lumi Light
-//
-//  Created by Matt Krussow on 5/11/25.
-//
 
-import Foundation
-import SwiftUICore
+// Preview - Use this block if you want to preview MessageView.
+// Ensure your ChatMessage and Sender types are accessible.
+#Preview {
+    // This preview assumes:
+    // 1. Your 'ChatMessage' struct/class can be initialized with (sender: Sender, text: String)
+    //    (and handles its 'id' internally).
+    // 2. Your 'Sender' enum is accessible and has .user and .lumi cases.
+    // 3. Your 'Color.sl_bgPrimary' is defined and accessible.
+
+    VStack {
+        MessageView(message: ChatMessage(sender: .user, text: "This is a user message you can try to select."))
+        MessageView(message: ChatMessage(sender: .lumi, text: "This is Lumi's response. Try long-pressing me!"))
+    }
+    .padding()
+    .background(Color.sl_bgPrimary)
+    .preferredColorScheme(.dark)
+    // If ChatMessage or other dependencies (like UserData for colors, though not directly used here)
+    // are needed for your actual types, add them as environmentObjects if necessary.
+    // .environmentObject(UserData.shared)
+}
+
+// The comments below "// MessageView.swift", "// Lumi Light", etc.
+// and the "import Foundation" and "import SwiftUICore" that were at the bottom
+// of your pasted code should remain where they were in your original file structure,
+// or ideally, all imports should be at the top.
+// The code above reflects having all imports at the top.

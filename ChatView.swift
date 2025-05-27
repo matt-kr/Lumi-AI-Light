@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - ChatView (Core Chat Interface)
 
 struct ChatView: View {
-    @Binding var isMenuOpen: Bool // Binding to control menu
+    // @Binding var isMenuOpen: Bool // REMOVED
 
     @StateObject private var llmService = LlmInferenceService(modelName: "gemma-2b-it-gpu-int8")
     @StateObject private var keyboard = KeyboardResponder()
@@ -19,7 +19,7 @@ struct ChatView: View {
     @State private var isInputGlowActive: Bool = true
     @State private var hasMadeFirstSubmission: Bool = false
 
-    let nasalizationFont = "Nasalization-Regular" // Ensure this font is in your project
+    let nasalizationFont = "Nasalization-Regular"
     let messageFontName = "Trebuchet MS"
     let singleLineMinHeight: CGFloat = 38
     private let collapsedMinHeight: CGFloat = 38
@@ -31,12 +31,9 @@ struct ChatView: View {
     private var stopButtonRedShadow: Color { Color(red: 200/255, green: 70/255, blue: 70/255, opacity: 0.5) }
 
     // MARK: - Init for NavBar Styling
-    init(isMenuOpen: Binding<Bool>) {
-        self._isMenuOpen = isMenuOpen // Assign the binding
-
+    init() {
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        // Use your custom colors (ensure they are defined)
         appearance.backgroundColor = UIColor(Color.sl_bgPrimary)
 
         let titleFont = UIFont(name: nasalizationFont, size: 22) ?? UIFont.systemFont(ofSize: 22, weight: .bold)
@@ -47,7 +44,7 @@ struct ChatView: View {
         shadow.shadowBlurRadius = 2
 
         appearance.titleTextAttributes = [.foregroundColor: titleUIColor, .font: titleFont, .shadow: shadow]
-        appearance.largeTitleTextAttributes = appearance.titleTextAttributes // Keep consistent
+        appearance.largeTitleTextAttributes = [.foregroundColor: titleUIColor, .font: UIFont(name: nasalizationFont, size: 34) ?? UIFont.systemFont(ofSize: 34, weight: .bold), .shadow: shadow]
 
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
@@ -56,8 +53,8 @@ struct ChatView: View {
 
     // MARK: - Body
     var body: some View {
-        ZStack {
-            Color.sl_bgPrimary.ignoresSafeArea()
+        ZStack { // This ZStack is the root of ChatView's own content
+            Color.sl_bgPrimary.ignoresSafeArea() // Background for ChatView content area
 
             if llmService.isLoadingModel {
                 loadingIndicatorView
@@ -70,23 +67,10 @@ struct ChatView: View {
                 VStack { Spacer(); Text("Preparing Lumi...").font(.custom(nasalizationFont, size: 18)).foregroundColor(Color.sl_textSecondary); Spacer() }
             }
         }
-        .navigationTitle("Lumi")
-        .navigationBarTitleDisplayMode(.inline)
+        // NavigationTitle and DisplayMode will be handled by ContentView's NavigationView
+        // The toolbar here is for items specific to ChatView (New Chat, Keyboard Done)
         .toolbar {
-            // Hamburger Menu Button
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    withAnimation(.spring()) {
-                        isMenuOpen.toggle()
-                        isPromptFocused = false // Close keyboard
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal")
-                        .foregroundColor(Color.sl_textPrimary)
-                }
-            }
-            // Your existing New Chat Button
-            navigationBarToolbarContent
+            navigationBarToolbarContent // For "New Chat" and Keyboard "Done"
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { handleKeyboardNotification($0) }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { handleKeyboardNotification($0) }
@@ -95,7 +79,7 @@ struct ChatView: View {
                 llmService.initializeAndLoadModel()
             }
             updateInputGlowState()
-            _ = userData.loadData() // Load user data
+            _ = userData.loadData()
         }
         .onChange(of: llmService.isLoadingResponse) { _, isLoading in
             handleGlowStateChange(isLoading: isLoading)
@@ -106,26 +90,38 @@ struct ChatView: View {
                 }
             }
         }
-        .disabled(isMenuOpen) // Disable interaction when menu is open
-        .onTapGesture {
-            if isMenuOpen {
-                withAnimation(.spring()) {
-                    isMenuOpen = false
-                }
-            }
-        }
     }
 
     // MARK: - Subviews & View Components
-    
-    // --- PASTE ALL YOUR VIEWS LIKE loadingIndicatorView, mainContentVStack, etc. HERE ---
-    // (I'm adding them back based on your previous code)
     private var loadingIndicatorView: some View {
-        VStack { ProgressView().progressViewStyle(CircularProgressViewStyle(tint: Color.sl_textPrimary)).scaleEffect(1.5); Text("Initializing Lumi...").font(.custom(nasalizationFont, size: 18)).foregroundColor(Color.sl_textSecondary).padding(.top, 10) }
+        VStack {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: Color.sl_textPrimary))
+                .scaleEffect(1.5)
+            Text("Initializing Lumi...")
+                .font(.custom(nasalizationFont, size: 18))
+                .foregroundColor(Color.sl_textSecondary)
+                .padding(.top, 10)
+        }
     }
+
     private func errorStateView(message: String) -> some View {
-        VStack { Spacer(); errorWarningView(message: message); Button("Retry Initialization") { llmService.initializeAndLoadModel() }.font(.custom(nasalizationFont, size: 16)).padding().foregroundColor(Color.sl_textOnAccent).background(Color.sl_bgAccent).cornerRadius(8); Spacer() }.padding()
+        VStack {
+            Spacer()
+            errorWarningView(message: message)
+            Button("Retry Initialization") {
+                llmService.initializeAndLoadModel()
+            }
+            .font(.custom(nasalizationFont, size: 16))
+            .padding()
+            .foregroundColor(Color.sl_textOnAccent)
+            .background(Color.sl_bgAccent)
+            .cornerRadius(8)
+            Spacer()
+        }
+        .padding()
     }
+
     private var mainContentVStack: some View {
         VStack(spacing: 0) {
             if let nonCriticalError = llmService.initErrorMessage, llmService.isModelReady {
@@ -138,9 +134,11 @@ struct ChatView: View {
                     .background(Color.sl_bgSecondary.opacity(0.5))
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
+
             conversationListViewContainer
                 .frame(maxHeight: .infinity)
                 .padding(.vertical, 15)
+
             inputAreaView()
                 .padding(.top, 8)
                 .padding(.bottom, keyboard.currentHeight > 0 ? 0 : 8)
@@ -149,6 +147,7 @@ struct ChatView: View {
         .animation(Animation.customSpring(duration: keyboardAnimationDuration, bounce: 0.1), value: keyboard.currentHeight)
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
+
     private var conversationListViewContainer: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 8)
@@ -198,11 +197,16 @@ struct ChatView: View {
             }
         }
     }
-    @ViewBuilder private func buildScrollView(with scrollViewProxy: ScrollViewProxy, isPromptFocused: Bool, keyboardAnimationDuration: TimeInterval) -> some View {
+
+    @ViewBuilder
+    private func buildScrollView(
+        with scrollViewProxy: ScrollViewProxy,
+        isPromptFocused: Bool,
+        keyboardAnimationDuration: TimeInterval
+    ) -> some View {
         ScrollView {
             LazyVStack(spacing: 12) {
                 ForEach(llmService.conversation) { message in
-                    // Assuming you have a MessageView defined elsewhere
                     MessageView(message: message).id(message.id)
                 }
             }
@@ -224,27 +228,33 @@ struct ChatView: View {
             }
         }
     }
-    @ViewBuilder private func inputAreaView() -> some View {
+
+    @ViewBuilder
+    private func inputAreaView() -> some View {
         let isSubmitVisualState = !llmService.isLoadingResponse
         let isButtonStopping = llmService.isLoadingResponse && currentPromptCanBeStopped()
 
         HStack(alignment: .bottom, spacing: 10) {
             ZStack(alignment: .leading) {
-                // Assuming you have GrowingTextEditor defined
-                GrowingTextEditor(text: $promptText, height: $textEditorHeight, maxHeight: 120, minHeight: collapsedMinHeight)
-                    .frame(height: textEditorHeight)
-                    .disabled(llmService.isLoadingResponse && !currentPromptCanBeStopped())
-                    .background(Color.sl_bgTertiary)
-                    .cornerRadius(12)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(isSubmitVisualState ? Color.sl_glowColor.opacity(0.8) : Color.sl_borderPrimary,
-                                    lineWidth: isSubmitVisualState ? 1.5 : 1)
-                    )
-                    .shadow(color: isSubmitVisualState ? Color.sl_glowColor.opacity(0.6) : .clear,
-                            radius: isSubmitVisualState ? 6 : 0)
-                    .focused($isPromptFocused)
-                    .onSubmit(submitPrompt)
+                GrowingTextEditor(
+                    text: $promptText,
+                    height: $textEditorHeight,
+                    maxHeight: 120,
+                    minHeight: collapsedMinHeight
+                )
+                .frame(height: textEditorHeight)
+                .disabled(llmService.isLoadingResponse && !currentPromptCanBeStopped())
+                .background(Color.sl_bgTertiary)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSubmitVisualState ? Color.sl_glowColor.opacity(0.8) : Color.sl_borderPrimary,
+                                lineWidth: isSubmitVisualState ? 1.5 : 1)
+                )
+                .shadow(color: isSubmitVisualState ? Color.sl_glowColor.opacity(0.6) : .clear,
+                        radius: isSubmitVisualState ? 6 : 0)
+                .focused($isPromptFocused)
+                .onSubmit(submitPrompt)
 
                 if promptText.isEmpty && !isPromptFocused {
                     Text(placeholderText)
@@ -271,7 +281,6 @@ struct ChatView: View {
                             .foregroundColor(Color.sl_textOnAccent)
                             .transition(.opacity.combined(with: .scale(scale: 0.9)))
                     } else if llmService.isLoadingResponse {
-                        // Assuming you have DotLoadingView defined
                         DotLoadingView(color: Color.sl_textOnAccent, dotSize: 6, spacing: 3)
                             .transition(.opacity.combined(with: .scale(scale: 0.9)))
                     } else {
@@ -283,7 +292,9 @@ struct ChatView: View {
                 }
             }
             .frame(width: 44, height: 44)
-            .background( isButtonStopping ? stopButtonRed : Color.sl_bgAccent )
+            .background(
+                isButtonStopping ? stopButtonRed : Color.sl_bgAccent
+            )
             .clipShape(Circle())
             .foregroundColor(Color.sl_textOnAccent)
             .shadow(
@@ -303,7 +314,9 @@ struct ChatView: View {
         }
         .animation(.easeInOut(duration: 0.25), value: textEditorHeight)
     }
-    @ToolbarContentBuilder private var navigationBarToolbarContent: some ToolbarContent {
+
+    @ToolbarContentBuilder
+    private var navigationBarToolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .keyboard) {
             Spacer()
             Button("Done") { isPromptFocused = false }
@@ -319,6 +332,7 @@ struct ChatView: View {
             }
         }
     }
+
     private func errorWarningView(message: String) -> some View {
         Text(message)
             .font(.custom(messageFontName, size: 14)).foregroundColor(Color.sl_errorText)
@@ -331,34 +345,31 @@ struct ChatView: View {
     // MARK: - Helper Functions
     private var placeholderText: String {
         let name = userData.userName
-        let defaultName = "Matt" // Keep your original default if needed
+        let defaultName = "Matt"
         let currentName = name.isEmpty ? defaultName : name
 
         if llmService.isLoadingModel { return "Lumi is waking up..." }
         else if !llmService.isModelReady && llmService.initErrorMessage == nil { return "Preparing Lumi..." }
         else if !llmService.isModelReady && llmService.initErrorMessage != nil { return "Lumi has an issue. See above." }
         else if !hasMadeFirstSubmission {
-            return "Hi \(currentName), what can I help you with?" // Use dynamic name
+            return "Hi \(currentName), what can I help you with?"
         }
         else {
             return "Ask Lumi..."
         }
     }
+
     private func submitOrStop() {
-        print("UI: submitOrStop called. isLoadingResponse: \(llmService.isLoadingResponse), canBeStopped: \(currentPromptCanBeStopped())")
         if llmService.isLoadingResponse {
             if currentPromptCanBeStopped() {
-                print("UI: Attempting to stop generation...")
                 llmService.stopGeneration()
                 if isPromptFocused { isPromptFocused = false }
-            } else {
-                print("UI: isLoadingResponse is true, but currentPromptCanBeStopped is false.")
             }
         } else {
-            print("UI: Submitting prompt...")
             submitPrompt()
         }
     }
+
     private func submitPrompt() {
         let trimmedPrompt = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedPrompt.isEmpty else { return }
@@ -366,31 +377,41 @@ struct ChatView: View {
         let textToSend = promptText; promptText = ""
         DispatchQueue.main.asyncAfter(deadline: .now() + (keyboard.currentHeight > 0 ? keyboardAnimationDuration * 0.25 : 0) + 0.05) {
             self.llmService.generateResponseStreaming(prompt: textToSend.trimmingCharacters(in: .whitespacesAndNewlines))
-            if !self.hasMadeFirstSubmission { // Set the flag here
+            if !self.hasMadeFirstSubmission {
                 self.hasMadeFirstSubmission = true
             }
         }
     }
+
     private func currentPromptCanBeStopped() -> Bool {
         return llmService.isLoadingResponse
     }
+
     private func handleKeyboardNotification(_ notification: Notification) {
         if let anim = KeyboardResponder.keyboardAnimation(from: notification) {
             self.keyboardAnimationDuration = anim.duration
             self.keyboardAnimationCurve = anim.curve
         }
     }
+
     private func handleGlowStateChange(isLoading: Bool) {
         if isLoading {
-            if conversationGlowState != .pulsing { conversationGlowState = .pulsing }
+            if conversationGlowState != .pulsing {
+                conversationGlowState = .pulsing
+            }
         } else {
-            if conversationGlowState == .pulsing { conversationGlowState = .finalPulse }
-            else { conversationGlowState = .idle }
+            if conversationGlowState == .pulsing {
+                conversationGlowState = .finalPulse
+            } else {
+                conversationGlowState = .idle
+            }
         }
     }
+
     private func updateInputGlowState() {
         isInputGlowActive = !llmService.isLoadingResponse
     }
+
     private func scrollToBottom(proxy: ScrollViewProxy, newConversation: [ChatMessage], animationDuration: TimeInterval) {
         if let lastMessage = newConversation.last {
             let animation = Animation.customSpring(duration: animationDuration, bounce: 0.1)
@@ -401,6 +422,22 @@ struct ChatView: View {
     }
 }
 
-// NOTE: You will need MessageView, DotLoadingView, GrowingTextEditor,
-// ChatMessage, KeyboardResponder and your custom colors (Color.sl_...)
-// defined elsewhere in your project for this to compile.
+// MARK: - Animation Extension
+// (Make sure this is outside the ChatView struct)
+extension Animation {
+    static func customSpring(duration: TimeInterval, bounce: CGFloat = 0.0) -> Animation {
+        return .timingCurve(0.45, 1.05, 0.35, 1.0, duration: duration)
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    NavigationView { // It's good to wrap ChatView in NavigationView for preview
+        ChatView()
+            .environmentObject(UserData.shared) // Add UserData for placeholder
+            // Add LlmInferenceService if needed for preview logic,
+            // or use a mock if your preview doesn't trigger LLM calls.
+            // .environmentObject(LlmInferenceService())
+            .preferredColorScheme(.dark)
+    }
+}
