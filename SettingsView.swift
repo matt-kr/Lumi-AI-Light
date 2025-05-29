@@ -17,17 +17,26 @@ struct SettingsView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
+    @ViewBuilder
+    private func customSectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.custom(nasalizationFont, size: 13))
+            .foregroundColor(Color.sl_textSecondary)
+    }
+
     var body: some View {
         Form {
-            Section("User Profile") {
+            Section(header: customSectionHeader("User Profile")) {
                 TextField("Your Name", text: $tempUserName)
+                    .font(.custom(nasalizationFont, size: 16))
                     .foregroundColor(Color.sl_textPrimary)
 
                 VStack(alignment: .leading) {
                     Text("About You (Max \(aboutLimit) chars)")
-                        .font(.caption)
+                        .font(.custom(nasalizationFont, size: 13))
                         .foregroundColor(Color.sl_textSecondary)
                     TextEditor(text: $tempUserAbout)
+                        .font(.custom(nasalizationFont, size: 16))
                         .frame(height: 100)
                         .onChange(of: tempUserAbout) { _, newValue in
                             if newValue.count > aboutLimit {
@@ -39,27 +48,35 @@ struct SettingsView: View {
                         .cornerRadius(5)
 
                     Text("\(tempUserAbout.count) / \(aboutLimit)")
-                        .font(.caption)
+                        .font(.custom(nasalizationFont, size: 12))
                         .foregroundColor(tempUserAbout.count > aboutLimit ? .red : .sl_textSecondary)
                         .frame(maxWidth: .infinity, alignment: .trailing)
                 }
             }
             .listRowBackground(Color.sl_bgSecondary)
 
-            Section("Lumi's Personality") {
-                Picker("Select Personality", selection: $tempPersonalityType) {
+            Section(header: customSectionHeader("Lumi's Personality")) {
+                Picker(selection: $tempPersonalityType) {
                     ForEach(personalityOptions, id: \.self) { option in
-                        Text(option).tag(option)
+                        Text(option)
+                            .font(.custom(nasalizationFont, size: 16))
+                            .tag(option)
                     }
+                } label: {
+                    Text("Select Personality")
+                        .font(.custom(nasalizationFont, size: 16))
+                        .foregroundColor(Color.sl_textPrimary)
                 }
-                .foregroundColor(Color.sl_textPrimary)
+                // Note: The .foregroundColor below might be overridden by .accentColor for the Picker's interactive elements
+                // .foregroundColor(Color.sl_textPrimary)
 
                 if tempPersonalityType == "Custom" {
                     VStack(alignment: .leading) {
                         Text("Describe Custom Personality (Max \(customPersonalityLimit) chars)")
-                            .font(.caption)
+                            .font(.custom(nasalizationFont, size: 13))
                             .foregroundColor(Color.sl_textSecondary)
                         TextEditor(text: $tempCustomPersonality)
+                            .font(.custom(nasalizationFont, size: 16))
                             .frame(height: 80)
                             .onChange(of: tempCustomPersonality) { _, newValue in
                                 if newValue.count > customPersonalityLimit {
@@ -71,7 +88,7 @@ struct SettingsView: View {
                             .cornerRadius(5)
 
                         Text("\(tempCustomPersonality.count) / \(customPersonalityLimit)")
-                            .font(.caption)
+                            .font(.custom(nasalizationFont, size: 12))
                             .foregroundColor(tempCustomPersonality.count > customPersonalityLimit ? .red : .sl_textSecondary)
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
@@ -79,64 +96,47 @@ struct SettingsView: View {
                 }
             }
             .listRowBackground(Color.sl_bgSecondary)
+            // --- YOU CAN TRY ADDING THIS ---
+            // This *might* influence the Picker's selected value text, but often doesn't reliably.
+            // .environment(\.font, .custom(nasalizationFont, size: 16))
+            // --- END TRY ---
 
-            // --- MODIFIED BUTTON SECTION ---
+
             Section {
                 Button {
                     hideKeyboard()
-                    userData.userName = tempUserName
-                    userData.userAbout = tempUserAbout
-                    userData.personalityType = tempPersonalityType
-                    userData.customPersonality = tempCustomPersonality
-
-                    withAnimation(.easeInOut(duration: 0.25)) { // Slower: Glow starts
-                        showSavePulse = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { // Slower: Hold glow (increased from 0.4)
-                        withAnimation(.easeInOut(duration: 0.5)) { // Slower: Glow fades out (increased from 0.4)
-                            showSavePulse = false
-                        }
+                    userData.userName = tempUserName; userData.userAbout = tempUserAbout
+                    userData.personalityType = tempPersonalityType; userData.customPersonality = tempCustomPersonality
+                    withAnimation(.easeInOut(duration: 0.25)) { showSavePulse = true }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.easeInOut(duration: 0.5)) { showSavePulse = false }
                     }
                 } label: {
                     Text("Save Context")
-                        .font(.headline) // Make text a bit bolder/bigger
+                        .font(.custom(nasalizationFont, size: 17))
                         .foregroundColor(Color.sl_textOnAccent)
-                        .padding() // Add padding around text
-                        .frame(maxWidth: .infinity) // Make label take full width
-                        .background( // This RoundedRectangle IS the button's visible background
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.sl_bgAccent) // The button's actual color
-                        )
-                        // Apply glow effects to the label, which now has its own background
-                        .overlay( // Glowing border
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(showSavePulse ? Color.sl_glowColor.opacity(0.8) : Color.clear, lineWidth: 2)
-                        )
-                        .shadow( // Outer glow
-                            color: showSavePulse ? Color.sl_glowColor.opacity(0.7) : Color.clear,
-                            radius: showSavePulse ? 10 : 0
-                        )
-                        .scaleEffect(showSavePulse ? 0.97 : 1.0) // Scale the whole label
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Color.sl_bgAccent))
+                        .overlay(RoundedRectangle(cornerRadius: 8).stroke(showSavePulse ? Color.sl_glowColor.opacity(0.8) : Color.clear, lineWidth: 2))
+                        .shadow(color: showSavePulse ? Color.sl_glowColor.opacity(0.7) : Color.clear, radius: showSavePulse ? 10 : 0)
+                        .scaleEffect(showSavePulse ? 0.97 : 1.0)
                 }
-                // Remove .frame, .scaleEffect, .shadow from Button directly
             }
-            // Make the list row itself clear, so our button's custom background and glow are fully visible
             .listRowBackground(Color.clear)
-            // --- END MODIFIED BUTTON SECTION ---
         }
         .background(Color.sl_bgPrimary.ignoresSafeArea())
         .scrollContentBackground(.hidden)
-        .navigationTitle("Settings")
+        .navigationTitle("Settings") // This title's font is controlled by UINavigationBar.appearance()
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.dark, for: .navigationBar)
+        // .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear {
-            tempUserName = userData.userName
-            tempUserAbout = userData.userAbout
+            tempUserName = userData.userName; tempUserAbout = userData.userAbout
             tempPersonalityType = userData.personalityType.isEmpty ? "Lumi" : userData.personalityType
             tempCustomPersonality = userData.customPersonality
         }
         .environment(\.defaultMinListRowHeight, 44)
-        .accentColor(Color.sl_glowColor)
+        .accentColor(Color.sl_glowColor) // Styles Picker selection indicators, etc.
     }
 }
 

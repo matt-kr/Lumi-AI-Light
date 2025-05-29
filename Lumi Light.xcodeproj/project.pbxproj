@@ -13,7 +13,6 @@
 		552F8EEC2DE14F0300BA5F7A /* SideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE92DE14F0300BA5F7A /* SideMenuView.swift */; };
 		5581E4E92DD1B3270091C7A4 /* GrowingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */; };
 		55B48D172DCFD548009D683B /* LlmInferenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B48D162DCFD548009D683B /* LlmInferenceService.swift */; };
-		55B48D272DCFE37A009D683B /* gemma3-1B-it-int4.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D262DCFE37A009D683B /* gemma3-1B-it-int4.tflite */; };
 		55B48D2D2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */; };
 		55B48D312DCFF120009D683B /* nasalization-rg 2.otf in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D302DCFF120009D683B /* nasalization-rg 2.otf */; };
 		55C996552DE387C10083A116 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C996542DE387C10083A116 /* ChatView.swift */; };
@@ -49,7 +48,6 @@
 		55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48D162DCFD548009D683B /* LlmInferenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LlmInferenceService.swift; sourceTree = "<group>"; };
-		55B48D262DCFE37A009D683B /* gemma3-1B-it-int4.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; path = "gemma3-1B-it-int4.tflite"; sourceTree = "<group>"; };
 		55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; path = "gemma-2b-it-gpu-int8.tflite"; sourceTree = "<group>"; };
 		55B48D302DCFF120009D683B /* nasalization-rg 2.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "nasalization-rg 2.otf"; sourceTree = "<group>"; };
 		55C996542DE387C10083A116 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
@@ -131,7 +129,6 @@
 				552F8EE82DE14F0300BA5F7A /* UserData.swift */,
 				552F8EE52DE1002100BA5F7A /* LlmWorker.swift */,
 				55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */,
-				55B48D262DCFE37A009D683B /* gemma3-1B-it-int4.tflite */,
 				55B48D302DCFF120009D683B /* nasalization-rg 2.otf */,
 				55B48D162DCFD548009D683B /* LlmInferenceService.swift */,
 				5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */,
@@ -277,7 +274,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				55B48D272DCFE37A009D683B /* gemma3-1B-it-int4.tflite in Resources */,
 				55B48D312DCFF120009D683B /* nasalization-rg 2.otf in Resources */,
 				55B48D2D2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite in Resources */,
 			);

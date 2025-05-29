@@ -24,7 +24,7 @@ actor LlmWorker {
     // FIXED: Added 'async'
     private func createInstance() async -> Bool {
         guard let path = self.modelPath else { print("[Worker ERROR] Model path is nil."); return false }
-        print("[Worker] Creating new LlmInference instance...")
+        print("[Worker] Creating new LlmInference instance with model: \(path)")
         self.llmInference = nil
         await Task.yield() // Keep the yield
         do {

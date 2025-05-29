@@ -222,6 +222,13 @@ class LlmInferenceService: ObservableObject {
         if !userAbout.isEmpty { sysPromptText += " Here's a bit about them: \(userAbout)." }
         sysPromptText += " If you don't know an answer do not make one up. Do not repeat back a query when answering. Pay close attention to the conversation history."
 
+        // MARK: - DATE/TIME & INSTRUCTIONS HERE ---
+        let now = Date()
+                let formattedDateTime = now.formatted(date: .long, time: .shortened)
+                // Use a more "data-like" prefix and a stronger instruction:
+                sysPromptText += " [System Clock: \(formattedDateTime)]"
+                // MARK: --- END ADD ---
+        
         // 5. Assemble the final prompt
         let finalPrompt = "\(sysPromptText)\n\(history)<start_of_turn>user\n\(userPrompt)<end_of_turn>\n<start_of_turn>model\n"
         

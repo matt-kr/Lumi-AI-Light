@@ -1,9 +1,5 @@
-//
-//  Lumi_LightApp.swift
-//  Lumi Light
-//
+
 //  Created by Matt Krussow on 5/10/25.
-//
 
 import SwiftUI
 import SwiftData

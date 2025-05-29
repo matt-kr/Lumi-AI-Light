@@ -3,11 +3,9 @@ import SwiftUI
 // MARK: - ChatView (Core Chat Interface)
 
 struct ChatView: View {
-    // @Binding var isMenuOpen: Bool // REMOVED
-
     @StateObject private var llmService = LlmInferenceService(modelName: "gemma-2b-it-gpu-int8")
     @StateObject private var keyboard = KeyboardResponder()
-    @StateObject private var userData = UserData.shared // Access user data
+    @StateObject private var userData = UserData.shared
 
     @State private var promptText: String = ""
     @State private var textEditorHeight: CGFloat = 38
@@ -18,8 +16,10 @@ struct ChatView: View {
     @State private var glowOpacity: Double = 0.0
     @State private var isInputGlowActive: Bool = true
     @State private var hasMadeFirstSubmission: Bool = false
+    // @State private var showActionSheet: Bool = false // REMOVED
+    @State private var showComingSoonAlert: Bool = false // KEPT for Menu
 
-    let nasalizationFont = "Nasalization-Regular"
+    let nasalizationFont = "Nasalization-Regular" // Used in body
     let messageFontName = "Trebuchet MS"
     let singleLineMinHeight: CGFloat = 38
     private let collapsedMinHeight: CGFloat = 38
@@ -32,29 +32,75 @@ struct ChatView: View {
 
     // MARK: - Init for NavBar Styling
     init() {
+        let fontNameForTitle = "Nasalization-Regular"
+        let titleFontSize: CGFloat = 22
+        let barButtonFontSize: CGFloat = 17 // Font size for back button text
+
+        // Ensure these fonts are valid
+        let titleUiFont = UIFont(name: fontNameForTitle, size: titleFontSize) ?? UIFont.systemFont(ofSize: titleFontSize, weight: .bold)
+        let barButtonUiFont = UIFont(name: fontNameForTitle, size: barButtonFontSize) ?? UIFont.systemFont(ofSize: barButtonFontSize)
+
+        // Define colors from your palette
+        let navBarBackgroundColor = UIColor(Color.sl_bgPrimary)
+        let mainTitleAndBackButtonTextColor = UIColor(Color.sl_textPrimary)
+        let glowUIColorForShadow = UIColor(Color.sl_glowColor)
+
+        // Create the shadow for the main title
+        let titleShadow = NSShadow()
+        titleShadow.shadowColor = glowUIColorForShadow.withAlphaComponent(0.5)
+        titleShadow.shadowOffset = CGSize(width: 0, height: 1)
+        titleShadow.shadowBlurRadius = 2
+
+        // --- Configure the standard appearance ---
         let appearance = UINavigationBarAppearance()
         appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIColor(Color.sl_bgPrimary)
+        appearance.backgroundColor = navBarBackgroundColor
 
-        let titleFont = UIFont(name: nasalizationFont, size: 22) ?? UIFont.systemFont(ofSize: 22, weight: .bold)
-        let titleUIColor = UIColor(Color.sl_textPrimary)
-        let shadow = NSShadow()
-        shadow.shadowColor = UIColor(Color.sl_glowColor).withAlphaComponent(0.5)
-        shadow.shadowOffset = CGSize(width: 0, height: 1)
-        shadow.shadowBlurRadius = 2
+        // Main Title attributes
+        appearance.titleTextAttributes = [
+            .font: titleUiFont,
+            .foregroundColor: mainTitleAndBackButtonTextColor,
+            .shadow: titleShadow
+        ]
+        appearance.largeTitleTextAttributes = [
+            .font: UIFont(name: fontNameForTitle, size: 34) ?? UIFont.systemFont(ofSize: 34, weight: .bold),
+            .foregroundColor: mainTitleAndBackButtonTextColor,
+            .shadow: titleShadow
+        ]
 
-        appearance.titleTextAttributes = [.foregroundColor: titleUIColor, .font: titleFont, .shadow: shadow]
-        appearance.largeTitleTextAttributes = [.foregroundColor: titleUIColor, .font: UIFont(name: nasalizationFont, size: 34) ?? UIFont.systemFont(ofSize: 34, weight: .bold), .shadow: shadow]
+        // --- Configure Bar Button Item Attributes ---
+        let barButtonAppearance = UIBarButtonItemAppearance()
+        barButtonAppearance.normal.titleTextAttributes = [
+            .font: barButtonUiFont,
+            .foregroundColor: mainTitleAndBackButtonTextColor
+        ]
+        barButtonAppearance.highlighted.titleTextAttributes = [
+            .font: barButtonUiFont,
+            .foregroundColor: mainTitleAndBackButtonTextColor.withAlphaComponent(0.7)
+        ]
+        barButtonAppearance.disabled.titleTextAttributes = [
+            .font: barButtonUiFont,
+            .foregroundColor: mainTitleAndBackButtonTextColor.withAlphaComponent(0.5)
+        ]
 
+        appearance.buttonAppearance = barButtonAppearance
+        appearance.backButtonAppearance = barButtonAppearance
+        appearance.doneButtonAppearance = barButtonAppearance
+
+        // Apply this appearance
         UINavigationBar.appearance().standardAppearance = appearance
         UINavigationBar.appearance().scrollEdgeAppearance = appearance
-        UINavigationBar.appearance().tintColor = titleUIColor
+        UINavigationBar.appearance().compactAppearance = appearance
+        UINavigationBar.appearance().compactScrollEdgeAppearance = appearance
+
+        // Set tint color
+        UINavigationBar.appearance().tintColor = mainTitleAndBackButtonTextColor
     }
 
     // MARK: - Body
     var body: some View {
         ZStack { // This ZStack is the root of ChatView's own content
-            Color.sl_bgPrimary.ignoresSafeArea() // Background for ChatView content area
+            Color.sl_bgPrimary.ignoresSafeArea() // Background
 
             if llmService.isLoadingModel {
                 loadingIndicatorView
@@ -67,10 +113,8 @@ struct ChatView: View {
                 VStack { Spacer(); Text("Preparing Lumi...").font(.custom(nasalizationFont, size: 18)).foregroundColor(Color.sl_textSecondary); Spacer() }
             }
         }
-        // NavigationTitle and DisplayMode will be handled by ContentView's NavigationView
-        // The toolbar here is for items specific to ChatView (New Chat, Keyboard Done)
         .toolbar {
-            navigationBarToolbarContent // For "New Chat" and Keyboard "Done"
+            navigationBarToolbarContent
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { handleKeyboardNotification($0) }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { handleKeyboardNotification($0) }
@@ -89,6 +133,12 @@ struct ChatView: View {
                     if !llmService.isLoadingResponse { isInputGlowActive = true }
                 }
             }
+        }
+        // MARK: - ADD .alert HERE:
+        .alert("Coming Soon!", isPresented: $showComingSoonAlert) {
+            Button("OK") { }
+        } message: {
+            Text("This feature will be available in a future update with Gemma 3.")
         }
     }
 
@@ -229,50 +279,76 @@ struct ChatView: View {
         }
     }
 
+    // MARK: - UPDATED inputAreaView
     @ViewBuilder
     private func inputAreaView() -> some View {
         let isSubmitVisualState = !llmService.isLoadingResponse
         let isButtonStopping = llmService.isLoadingResponse && currentPromptCanBeStopped()
 
         HStack(alignment: .bottom, spacing: 10) {
-            ZStack(alignment: .leading) {
-                GrowingTextEditor(
-                    text: $promptText,
-                    height: $textEditorHeight,
-                    maxHeight: 120,
-                    minHeight: collapsedMinHeight
-                )
-                .frame(height: textEditorHeight)
-                .disabled(llmService.isLoadingResponse && !currentPromptCanBeStopped())
-                .background(Color.sl_bgTertiary)
-                .cornerRadius(12)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(isSubmitVisualState ? Color.sl_glowColor.opacity(0.8) : Color.sl_borderPrimary,
-                                lineWidth: isSubmitVisualState ? 1.5 : 1)
-                )
-                .shadow(color: isSubmitVisualState ? Color.sl_glowColor.opacity(0.6) : .clear,
-                        radius: isSubmitVisualState ? 6 : 0)
-                .focused($isPromptFocused)
-                .onSubmit(submitPrompt)
 
-                if promptText.isEmpty && !isPromptFocused {
-                    Text(placeholderText)
-                        .font(.custom(nasalizationFont, size: 16))
-                        .foregroundColor(Color.sl_textPlaceholder)
-                        .padding(.leading, 9).padding(.vertical, 12)
-                        .allowsHitTesting(false)
-                        .transition(.opacity.animation(.easeInOut(duration: 0.15)))
+            HStack(alignment: .center, spacing: 5) { // Use .center alignment
+                ZStack(alignment: .leading) {
+                    GrowingTextEditor(
+                        text: $promptText,
+                        height: $textEditorHeight,
+                        maxHeight: 120,
+                        minHeight: collapsedMinHeight
+                    )
+                    .frame(height: textEditorHeight)
+                    .disabled(llmService.isLoadingResponse)
+                    .focused($isPromptFocused)
+                    .onSubmit(submitPrompt)
+
+                    if promptText.isEmpty && !isPromptFocused {
+                        Text(placeholderText)
+                            .font(.custom(nasalizationFont, size: 16))
+                            .foregroundColor(Color.sl_textPlaceholder)
+                            .padding(.leading, 9)
+                            .padding(.trailing, 40)
+                            .padding(.vertical, 10)
+                            .allowsHitTesting(false)
+                            .transition(.opacity.animation(.easeInOut(duration: 0.15)))
+                    }
                 }
-            }
-            .layoutPriority(1)
-            .animation(
-                llmService.isLoadingResponse ?
-                    .easeInOut(duration: 0.3) :
-                    .easeInOut(duration: 0.3).delay(0.5),
-                value: llmService.isLoadingResponse
-            )
+                .layoutPriority(1) // Make text editor expand
 
+                // MARK: - Use Menu for the + button
+                Menu {
+                    Button("Add Photos") {
+                        showComingSoonAlert = true // Triggers the alert
+                    }
+                    Button("Activate Voice Mode") {
+                        showComingSoonAlert = true // Triggers the alert
+                    }
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(Color.sl_textPrimary.opacity(0.8))
+                    .frame(width: 30, height: textEditorHeight)
+                    .contentShape(Rectangle())
+                }
+                .disabled(llmService.isLoadingResponse)
+                // MARK: - REMOVED the old Button { showActionSheet = true }
+
+            }
+            // Styling for the Combined Input Field
+            .padding(.horizontal, 6)
+            .padding(.vertical, 0)
+            .frame(minHeight: collapsedMinHeight)
+            .background(Color.sl_bgTertiary)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSubmitVisualState ? Color.sl_glowColor.opacity(0.8) : Color.sl_borderPrimary,
+                            lineWidth: isSubmitVisualState ? 1.5 : 1)
+            )
+            .shadow(color: isSubmitVisualState ? Color.sl_glowColor.opacity(0.6) : .clear,
+                    radius: isSubmitVisualState ? 6 : 0)
+            .layoutPriority(1)
+
+
+            // Existing Submit/Stop Button
             Button(action: submitOrStop) {
                 ZStack {
                     if isButtonStopping {
@@ -352,7 +428,7 @@ struct ChatView: View {
         else if !llmService.isModelReady && llmService.initErrorMessage == nil { return "Preparing Lumi..." }
         else if !llmService.isModelReady && llmService.initErrorMessage != nil { return "Lumi has an issue. See above." }
         else if !hasMadeFirstSubmission {
-            return "Hi \(currentName), what can I help you with?"
+            return "Hi \(currentName), what can I do for you?"
         }
         else {
             return "Ask Lumi..."
@@ -423,7 +499,6 @@ struct ChatView: View {
 }
 
 // MARK: - Animation Extension
-// (Make sure this is outside the ChatView struct)
 extension Animation {
     static func customSpring(duration: TimeInterval, bounce: CGFloat = 0.0) -> Animation {
         return .timingCurve(0.45, 1.05, 0.35, 1.0, duration: duration)
@@ -432,12 +507,14 @@ extension Animation {
 
 // MARK: - Preview
 #Preview {
-    NavigationView { // It's good to wrap ChatView in NavigationView for preview
+    NavigationView {
         ChatView()
-            .environmentObject(UserData.shared) // Add UserData for placeholder
-            // Add LlmInferenceService if needed for preview logic,
-            // or use a mock if your preview doesn't trigger LLM calls.
-            // .environmentObject(LlmInferenceService())
+            .environmentObject(UserData.shared)
             .preferredColorScheme(.dark)
     }
 }
+
+// NOTE: This code assumes that LlmInferenceService, KeyboardResponder,
+// UserData, MessageView, GrowingTextEditor, DotLoadingView, ChatMessage,
+// and your Color extensions (like Color.sl_bgPrimary) are defined
+// elsewhere in your project.

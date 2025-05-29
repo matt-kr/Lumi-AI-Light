@@ -9,12 +9,13 @@ class UserData: ObservableObject {
     @Published var userAbout: String { didSet { UserDefaults.standard.set(userAbout, forKey: "UserAbout") } }
     @Published var personalityType: String { didSet { UserDefaults.standard.set(personalityType, forKey: "UserPersonalityType") } }
     @Published var customPersonality: String { didSet { UserDefaults.standard.set(customPersonality, forKey: "UserCustomPersonality") } }
+    
+    // This will be the reactive source for the UI
+    @Published var hasCustomImage: Bool = false
 
-    // --- NEW PROPERTIES FOR PROFILE IMAGE ---
     @Published var profileImage: Image?
     private let profileImageFilename = "user_profile_image.jpg"
-    private let hasCustomProfileImageKey = "hasCustomProfileImage"
-    // --- END NEW PROPERTIES ---
+    private let hasCustomProfileImageKey = "hasCustomProfileImage" // Key for UserDefaults
 
     private init() {
         self.userName = UserDefaults.standard.string(forKey: "UserName") ?? ""
@@ -22,9 +23,11 @@ class UserData: ObservableObject {
         self.personalityType = UserDefaults.standard.string(forKey: "UserPersonalityType") ?? "Lumi"
         self.customPersonality = UserDefaults.standard.string(forKey: "UserCustomPersonality") ?? ""
         
-        // --- LOAD PROFILE IMAGE ON INIT ---
+        // --- UPDATE hasCustomImage ON INIT ---
+        self.hasCustomImage = UserDefaults.standard.bool(forKey: hasCustomProfileImageKey)
+        // --- END UPDATE ---
+        
         loadProfileImage()
-        // --- END LOAD ---
     }
 
     // MARK: - Profile Image Management
@@ -43,12 +46,15 @@ class UserData: ObservableObject {
         do {
             try imageData.write(to: url, options: .atomic)
             UserDefaults.standard.set(true, forKey: hasCustomProfileImageKey)
+            // --- UPDATE hasCustomImage ---
+            self.hasCustomImage = true
+            // --- END UPDATE ---
             if let uiImage = UIImage(data: imageData) {
                 self.profileImage = Image(uiImage: uiImage)
                 print("Profile image saved and loaded into UI.")
             } else {
                 print("Error: Could not create UIImage from saved data after saving.")
-                deleteProfileImage() // Fallback if data is corrupt
+                deleteProfileImage()
             }
         } catch {
             print("Error saving profile image: \(error)")
@@ -56,19 +62,23 @@ class UserData: ObservableObject {
     }
 
     func loadProfileImage() {
-        if UserDefaults.standard.bool(forKey: hasCustomProfileImageKey) {
+        // Update hasCustomImage based on UserDefaults before attempting to load
+        self.hasCustomImage = UserDefaults.standard.bool(forKey: hasCustomProfileImageKey)
+
+        if self.hasCustomImage { // Use the @Published property
             guard let url = getProfileImageURL(),
                   let imageData = try? Data(contentsOf: url),
                   let uiImage = UIImage(data: imageData) else {
                 print("Could not load custom profile image from disk, or data was corrupt. Reverting to default.")
                 // If loading fails, ensure we reset the flag and use default
-                deleteProfileImage() // This will set the default image
+                // Calling deleteProfileImage() will also set hasCustomImage = false and update profileImage
+                deleteProfileImage()
                 return
             }
             self.profileImage = Image(uiImage: uiImage)
             print("Custom profile image loaded from disk.")
         } else {
-            self.profileImage = Image("default_profile_icon") // Your default asset name
+            self.profileImage = Image("default_profile_icon")
             print("Using default profile image.")
         }
     }
@@ -85,11 +95,13 @@ class UserData: ObservableObject {
             }
         }
         UserDefaults.standard.set(false, forKey: hasCustomProfileImageKey)
-        self.profileImage = Image("default_profile_icon") // Set back to default
+        // --- UPDATE hasCustomImage ---
+        self.hasCustomImage = false
+        // --- END UPDATE ---
+        self.profileImage = Image("default_profile_icon")
         print("Reverted to default profile image.")
     }
 
-    // Keep your existing loadData function, or adapt if needed
     func loadData() -> (name: String, about: String, personality: String, custom: String) {
         let name = UserDefaults.standard.string(forKey: "UserName") ?? ""
         let about = UserDefaults.standard.string(forKey: "UserAbout") ?? ""
@@ -100,7 +112,15 @@ class UserData: ObservableObject {
         if self.userAbout != about { self.userAbout = about }
         if self.personalityType != personality { self.personalityType = personality }
         if self.customPersonality != custom { self.customPersonality = custom }
-        // Note: profileImage is loaded separately in init/loadProfileImage
+        
+        // Ensure hasCustomImage is also up-to-date if called elsewhere, though init() covers startup
+        let currentHasCustomFlag = UserDefaults.standard.bool(forKey: hasCustomProfileImageKey)
+        if self.hasCustomImage != currentHasCustomFlag {
+             self.hasCustomImage = currentHasCustomFlag
+             // Optionally trigger a profile image reload if this implies a discrepancy,
+             // but loadProfileImage() should be the main source of truth for the Image.
+             // For simplicity, assume init and direct image actions handle profileImage updates.
+        }
 
         return (name, about, personality, custom)
     }

@@ -2,93 +2,117 @@ import SwiftUI
 import PhotosUI // For PhotosPickerItem
 
 struct SideMenuView: View {
-    // @Binding var isMenuOpen: Bool // REMOVED if not used
     var openPercentage: CGFloat
-    @StateObject private var userData = UserData.shared // Observe UserData for profileImage
+    @StateObject private var userData = UserData.shared
 
     let glowColor = Color.sl_glowColor
     let nasalizationFont = "Nasalization-Regular"
 
-    // --- NEW STATE FOR PHOTO PICKER ---
     @State private var showingPhotoPicker = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var processingImage = false
     @State private var imageError: String?
-    // --- END NEW STATE ---
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Header or Profile Area
-            VStack(alignment: .leading) {
-                // --- UPDATED IMAGE DISPLAY ---
-                (userData.profileImage ?? Image("default_profile_icon")) // Display loaded image or default
-                    .resizable()
-                    .scaledToFill() // Use scaledToFill for better circle appearance
-                    .frame(width: 80, height: 80) // Made it a bit larger
-                    .clipShape(Circle())
-                    //.overlay(Circle().stroke(Color.sl_textPrimary.opacity(0.5), lineWidth: 1)) // Optional border
-                    .onTapGesture {
-                        showingPhotoPicker = true // Show picker on tap
-                    }
-                    .contextMenu { // Context menu for more options
-                        Button {
-                            showingPhotoPicker = true
-                        } label: {
-                            Label("Change Photo", systemImage: "photo.on.rectangle")
-                        }
-                        if UserDefaults.standard.bool(forKey: "hasCustomProfileImage") { // Only show if custom image exists
-                            Button(role: .destructive) {
-                                userData.deleteProfileImage()
-                            } label: {
-                                Label("Remove Photo", systemImage: "trash")
-                            }
-                        }
-                    }
-                    .padding(.top, 60)
-                // --- END UPDATED IMAGE DISPLAY ---
-
-                Text(userData.userName.isEmpty ? "Welcome" : userData.userName)
-                    .font(.title2.weight(.bold))
-                    .foregroundColor(Color.sl_textPrimary)
-                    .padding(.top, 8)
-                
-                if processingImage {
-                    ProgressView().padding(.top, 5)
+    // MARK: - Extracted Subviews
+    @ViewBuilder
+    private var profileHeaderView: some View {
+        VStack(alignment: .leading) {
+            // --- MODIFIED IMAGE INTERACTION ---
+            Menu {
+                // This content appears when the label (the image) is tapped
+                Button {
+                    showingPhotoPicker = true
+                } label: {
+                    Label("Change Photo", systemImage: "photo.on.rectangle")
                 }
-                if let errorMsg = imageError {
-                    Text(errorMsg)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.top, 5)
+
+                if userData.hasCustomImage { // Assumes hasCustomImage is @Published in UserData
+                    Button(role: .destructive) {
+                        userData.deleteProfileImage()
+                    } label: {
+                        Label("Remove Photo", systemImage: "trash")
+                    }
+                }
+            } label: {
+                // This is the view that, when tapped, shows the Menu
+                (userData.profileImage ?? Image("default_profile_icon"))
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 80, height: 80)
+                    .clipShape(Circle())
+            }
+            // The .onTapGesture directly on the image is removed.
+            // The .contextMenu can remain if you want long-press to also show these options,
+            // or you can remove it if the tap-activated Menu is sufficient.
+            .contextMenu {
+                Button { showingPhotoPicker = true } label: { Label("Change Photo", systemImage: "photo.on.rectangle") }
+                if userData.hasCustomImage {
+                    Button(role: .destructive) { userData.deleteProfileImage() } label: { Label("Remove Photo", systemImage: "trash") }
                 }
             }
-            .padding(.horizontal)
-            .padding(.bottom, 30)
+            .padding(.top, 60)
+            // --- END MODIFIED IMAGE INTERACTION ---
 
-            // ... (Rest of your NavigationLinks, Spacer, Footer Text) ...
-            NavigationLink { SettingsView() } label: { menuRow(icon: "gearshape.fill", text: "Settings") }
-            NavigationLink { Text("Past Conversations (Coming Soon!)").navigationTitle("History") } label: { menuRow(icon: "clock.fill", text: "History") }
-            Spacer()
-            Text("Lumi v1.0").font(.caption).foregroundColor(Color.sl_textSecondary).padding()
+            Text(userData.userName.isEmpty ? "Welcome" : userData.userName)
+                .font(.custom(nasalizationFont, size: 22))
+                .foregroundColor(Color.sl_textPrimary)
+                .padding(.top, 8)
 
+            if processingImage {
+                ProgressView().padding(.top, 5)
+            }
+            if let errorMsg = imageError {
+                Text(errorMsg)
+                    .font(.custom(nasalizationFont, size: 10))
+                    .foregroundColor(.red)
+                    .padding(.top, 5)
+            }
         }
-        .overlay( /* ... Your existing glow overlay ... */
+        .padding(.horizontal)
+        .padding(.bottom, 30)
+    }
+
+    @ViewBuilder
+    private var navigationLinksView: some View {
+        NavigationLink { SettingsView() } label: { menuRow(icon: "gearshape.fill", text: "Settings") }
+        NavigationLink { Text("Past Conversations (Coming Soon!)")
+                .font(.custom(nasalizationFont, size: 18)) // Choose your desired size
+                                .foregroundColor(Color.sl_textPrimary)
+            .navigationTitle("History") } label: { menuRow(icon: "clock.fill", text: "History") }
+    }
+
+    @ViewBuilder
+    private var footerView: some View {
+        Text("Lumi v1.0")
+            .font(.custom(nasalizationFont, size: 12))
+            .foregroundColor(Color.sl_textSecondary)
+            .padding()
+    }
+
+    // MARK: - Body
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            profileHeaderView
+            navigationLinksView
+            Spacer()
+            footerView
+        }
+        .overlay(
             Rectangle()
                 .fill(glowColor)
                 .frame(width: 1.5)
                 .shadow(color: glowColor.opacity(0.8), radius: 5, x: 2, y: 0)
-                .opacity(openPercentage)
-            , alignment: .trailing
+                .opacity(openPercentage),
+            alignment: .trailing
         )
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.sl_bgSecondary.ignoresSafeArea(.container, edges: .top))
         .edgesIgnoringSafeArea(.bottom)
-        // --- PHOTOS PICKER MODIFIER ---
         .photosPicker(
             isPresented: $showingPhotoPicker,
             selection: $selectedPhotoItem,
-            matching: .images, // Only pick images
-            photoLibrary: .shared() // Use the shared photo library
+            matching: .images,
+            photoLibrary: .shared()
         )
         .onChange(of: selectedPhotoItem) { _, newItem in
             Task {
@@ -97,30 +121,18 @@ struct SideMenuView: View {
                 if let item = newItem {
                     do {
                         guard let data = try await item.loadTransferable(type: Data.self) else {
-                            print("Failed to load image data from PhotosPickerItem.")
-                            imageError = "Could not load image."
-                            processingImage = false
-                            return
+                            imageError = "Could not load image."; processingImage = false; return
                         }
-                        print("Original selected image data size: \(data.count)")
-                        
-                        // Process the image (resize/compress)
                         let processedData = try await ImageHelper.processImage(data: data)
                         userData.saveProfileImage(imageData: processedData)
-                        print("Successfully processed and saved image.")
-
-                    } catch let error as ImageProcessError {
-                        print("Image processing error: \(error)")
-                        switch error {
-                            case .loadFailed: imageError = "Failed to load."
-                            case .resizeFailed: imageError = "Failed to resize."
-                            case .compressionFailed: imageError = "Failed to compress."
-                            case .tooLargeAfterProcessing: imageError = "Image too large."
+                    } catch let anError as ImageProcessError {
+                        switch anError {
+                        case .loadFailed: imageError = "Failed to load."
+                        case .resizeFailed: imageError = "Failed to resize."
+                        case .compressionFailed: imageError = "Failed to compress."
+                        case .tooLargeAfterProcessing: imageError = "Image too large."
                         }
-                    } catch {
-                        print("An unexpected error occurred: \(error)")
-                        imageError = "An error occurred."
-                    }
+                    } catch { imageError = "An error occurred." }
                 }
                 processingImage = false
             }
@@ -129,14 +141,13 @@ struct SideMenuView: View {
 
     @ViewBuilder
     private func menuRow(icon: String, text: String) -> some View {
-        // ... (Your menuRow code)
         HStack {
             Image(systemName: icon)
                 .foregroundColor(Color.sl_textPrimary)
                 .frame(width: 25)
             Text(text)
                 .foregroundColor(Color.sl_textPrimary)
-                .font(.headline)
+                .font(.custom(nasalizationFont, size: 17))
             Spacer()
         }
         .padding(.vertical, 15)
@@ -146,7 +157,7 @@ struct SideMenuView: View {
 }
 
 #Preview {
-    SideMenuView(openPercentage: 1.0) // Pass a dummy value for preview
-        .environmentObject(UserData.shared) // UserData is needed for profileImage
+    SideMenuView(openPercentage: 1.0)
+        .environmentObject(UserData.shared)
         .preferredColorScheme(.dark)
 }
