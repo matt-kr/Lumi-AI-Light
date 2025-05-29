@@ -4,7 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var llmService: LlmInferenceService
     @EnvironmentObject private var userData: UserData
     private let menuWidth: CGFloat = 250
-    @State private var currentMenuOffset: CGFloat = 0
+    @State private var currentMenuOffset: CGFloat = 0 // 0 is closed
     @GestureState private var dragGestureOffset: CGFloat = .zero
 
     private var actualVisualOffset: CGFloat { currentMenuOffset + dragGestureOffset }
@@ -18,7 +18,16 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             ZStack(alignment: .leading) {
-                SideMenuView(openPercentage: openPercentage) // NO closeMenuAction yet
+                SideMenuView(
+                    openPercentage: openPercentage,
+                    // MARK: - Provide the closeMenuAction -
+                    closeMenuAction: {
+                        print("ContentView: closeMenuAction called from SideMenu! Closing menu.") // For debugging
+                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7)) { // Or your preferred animation
+                            currentMenuOffset = 0 // This closes the menu
+                        }
+                    }
+                )
                 .frame(width: menuWidth)
                 .offset(x: clampedOffset - menuWidth)
                 .zIndex(0)
@@ -60,21 +69,37 @@ struct ContentView: View {
         .environment(\.colorScheme, .dark)
     }
 
-    func dragGesture() -> some Gesture { /* ... Your existing correct logic ... */
+    func dragGesture() -> some Gesture {
+        // ... (Your existing dragGesture logic from response #36) ...
         DragGesture(minimumDistance: 10)
             .updating($dragGestureOffset) { value, state, transaction in
-                if self.currentMenuOffset < self.menuWidth * 0.25 && value.translation.width > 15 { self.hideKeyboard() }
+                if self.currentMenuOffset < self.menuWidth * 0.25 && value.translation.width > 15 {
+                    self.hideKeyboard()
+                }
                 state = value.translation.width
             }
             .onEnded { value in
-                let combinedOffset = currentMenuOffset + value.translation.width; let predictedEndOffset = currentMenuOffset + value.predictedEndTranslation.width
-                let threshold = menuWidth / 3; let predictiveThreshold = menuWidth / 2
+                let combinedOffset = currentMenuOffset + value.translation.width
+                let predictedEndOffset = currentMenuOffset + value.predictedEndTranslation.width
+                let threshold = menuWidth / 3
+                let predictiveThreshold = menuWidth / 2
                 var newTargetOffset: CGFloat = 0
-                if (predictedEndOffset > predictiveThreshold && value.translation.width > 0) || (combinedOffset > threshold && value.translation.width > 0 && currentMenuOffset == 0) { newTargetOffset = menuWidth }
-                else if (predictedEndOffset < predictiveThreshold && value.translation.width < 0) || (combinedOffset < menuWidth - threshold && value.translation.width < 0 && currentMenuOffset == menuWidth) { newTargetOffset = 0 }
-                else if combinedOffset > menuWidth / 2 { newTargetOffset = menuWidth }
-                else { newTargetOffset = 0 }
-                if newTargetOffset == menuWidth { self.hideKeyboard() }
+
+                if (predictedEndOffset > predictiveThreshold && value.translation.width > 0) ||
+                   (combinedOffset > threshold && value.translation.width > 0 && currentMenuOffset == 0) {
+                    newTargetOffset = menuWidth
+                } else if (predictedEndOffset < predictiveThreshold && value.translation.width < 0) ||
+                          (combinedOffset < menuWidth - threshold && value.translation.width < 0 && currentMenuOffset == menuWidth) {
+                    newTargetOffset = 0
+                } else if combinedOffset > menuWidth / 2 {
+                    newTargetOffset = menuWidth
+                } else {
+                    newTargetOffset = 0
+                }
+
+                if newTargetOffset == menuWidth {
+                    self.hideKeyboard()
+                }
                 currentMenuOffset = newTargetOffset
             }
     }
