@@ -1,17 +1,17 @@
-
-//  Created by Matt Krussow on 5/10/25.
-
 import SwiftUI
 import SwiftData
 
 @main
 struct Lumi_LightApp: App {
+    @StateObject private var llmService = LlmInferenceService()
+    @StateObject private var userData = UserData.shared
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            ConversationSession.self,
+            ChatMessageModel.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
@@ -22,6 +22,8 @@ struct Lumi_LightApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(llmService)
+                .environmentObject(userData)
         }
         .modelContainer(sharedModelContainer)
     }

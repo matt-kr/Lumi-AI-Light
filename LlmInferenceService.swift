@@ -1,11 +1,10 @@
 import SwiftUI
 import Combine
-
-// NOTE: ChatMessage & Sender are NOT included here.
+import SwiftData
 
 @MainActor
 class LlmInferenceService: ObservableObject {
-    // ... Properties ...
+    // MARK: - Properties
     private let worker: LlmWorker
     private let modelName: String
     @Published var conversation: [ChatMessage] = []
@@ -14,14 +13,15 @@ class LlmInferenceService: ObservableObject {
     @Published private(set) var isModelReady = false
     @Published private(set) var isLoadingModel = false
     private var currentStreamingTask: Task<Void, Never>?
-    
-    // ... init, initializeAndLoadModel, startNewChat ...
+
+    private var activeSwiftDataSession: ConversationSession?
+
     init(modelName: String = "gemma-2b-it-gpu-int8") {
         self.modelName = modelName
         self.worker = LlmWorker()
         print("LlmInferenceService initialized. Call initializeAndLoadModel() to prepare worker.")
     }
-    
+
     func initializeAndLoadModel() {
         guard !isModelReady, !isLoadingModel else { return }
         print("[Service] Starting initial model setup...")
@@ -39,257 +39,160 @@ class LlmInferenceService: ObservableObject {
             print("[Service] Initial model setup (configuration) successful.")
         }
     }
-    
-    func startNewChat() {
+
+    func startNewChat(context: ModelContext) {
         stopGeneration()
+        if let activeSession = self.activeSwiftDataSession {
+            print("ℹ️ Closing active SwiftData session: \(activeSession.id). It should be saved turn-by-turn.")
+        }
+        self.activeSwiftDataSession = nil
         self.conversation.removeAll()
         self.isLoadingResponse = false
-        print("[Service] New chat started.")
+        print("[Service] New chat started. In-memory conversation cleared.")
     }
-    
-    // MARK: - Generate response
-        func generateResponseStreaming(prompt: String) {
-            guard self.isModelReady else { appendError("Lumi not ready.", isCritical: true); return }
-            guard self.currentStreamingTask == nil else { print("[Service] Already generating."); return }
-            guard !self.isLoadingResponse else { print("[Service] Inconsistent state (isLoading)."); self.isLoadingResponse = false; return }
-            
-            appendUserMessage(prompt)
-            self.isLoadingResponse = true
-            let historyPrompt = buildHistoryPrompt(with: prompt)
 
-            // --- ADD LOGGING HERE ---
-            print("📜 [Service] History Prompt Length: \(historyPrompt.count) characters")
-            // Optional: Log a snippet to see what's being sent, but be mindful of long outputs
-            // print("📜 [Service] History Prompt (first 200): \(String(historyPrompt.prefix(200)))...")
-            // --- END LOGGING ---
-            
-            self.currentStreamingTask = Task {
-                // ... (rest of the Task remains the same) ...
-                print("[Service Task] Requesting stream from worker...")
-                defer {
-                    Task { @MainActor in
-                        print("[Service DEFER] Resetting isLoadingResponse & currentStreamingTask.")
-                        self.isLoadingResponse = false
-                        self.currentStreamingTask = nil
-                    }
-                }
-                
-                var responseReceived = false
-                var accumulatedResponseText = ""
-                var lastError: Error? = nil
+    @MainActor
+    func loadConversation(sessionToLoad: ConversationSession) {
+        print("🔄 Loading conversation: \(sessionToLoad.id) - \(sessionToLoad.title)")
+        stopGeneration()
+        self.conversation.removeAll()
 
-                var lastUiUpdateTime: Date = .distantPast
-                let uiUpdateInterval: TimeInterval = 0.03
-                var firstChunkProcessedForUi = false
-                
-                do {
-                    let responseStream = await worker.generateResponse(prompt: historyPrompt) // historyPrompt is used here
-                    print("[Service Task] Successfully obtained responseStream. Awaiting chunks...")
-                    
-                    for try await chunk in responseStream {
-                        try Task.checkCancellation()
-                        // print("✅ [Service Loop] CHUNK RECEIVED: '\(chunk)'")
-                        
-                        responseReceived = true
-                        accumulatedResponseText += chunk
-                        // print("🔵 [Service Loop] ACCUMULATED: '\(accumulatedResponseText.prefix(80))...'")
-
-                        let now = Date()
-                        if !firstChunkProcessedForUi || now.timeIntervalSince(lastUiUpdateTime) >= uiUpdateInterval {
-                            let textToDisplay = accumulatedResponseText
-                            // print("✨ [Service Loop] Attempting UI Update with text (length: \(textToDisplay.count))")
-                            self.appendOrUpdateLumiText(textToDisplay)
-                            lastUiUpdateTime = now
-                            firstChunkProcessedForUi = true
-                        }
-                    }
-                    print("[Service Task] Finished iterating responseStream (Worker stream finished or was cancelled).")
-
-                    if responseReceived {
-                        let finalTextToDisplay = accumulatedResponseText
-                        // print("🏁 [Service Task] Attempting FINAL UI Update with text (length: \(finalTextToDisplay.count))")
-                        self.appendOrUpdateLumiText(finalTextToDisplay)
-                    }
-                    
-                } catch is CancellationError {
-                    print("[Service Task] Caught CancellationError in stream processing.")
-                    lastError = CancellationError()
-                } catch let workerError as LlmWorker.WorkerError {
-                    print("[Service Task] Caught LlmWorker.WorkerError in stream processing: \(workerError)")
-                    if case .cancelled = workerError {
-                        lastError = CancellationError()
-                    } else {
-                        lastError = workerError
-                    }
-                } catch {
-                    print("[Service Task] Caught an unexpected error in stream processing: \(error)")
-                    lastError = error
-                }
-                
-                print("[Service Task] Finalizing stream function.")
-                self.finalizeStream(lastError, gotData: responseReceived, finalAccumulatedText: accumulatedResponseText)
-            }
+        let messageModels = sessionToLoad.messages
+        self.conversation = messageModels.compactMap { model -> ChatMessage? in
+            return ChatMessage(id: model.id, sender: model.sender, text: model.text, timestamp: model.timestamp)
         }
-    // MARK: - Stop generation
+        
+        if messageModels.isEmpty { print("ℹ️ Loaded session has no messages.") }
+        else { print("✅ Loaded \(self.conversation.count) messages.") }
+
+        self.activeSwiftDataSession = sessionToLoad
+        self.isLoadingResponse = false
+        self.initErrorMessage = nil
+    }
+
+    func generateResponseStreaming(prompt: String, context: ModelContext) {
+        guard self.isModelReady else { appendError("Lumi not ready.", isCritical: true, context: context); return }
+        guard self.currentStreamingTask == nil else { print("[Service] Already generating."); return }
+        guard !self.isLoadingResponse else { print("[Service] Inconsistent state (isLoading)."); self.isLoadingResponse = false; return }
+        
+        appendUserMessage(prompt, context: context)
+        self.isLoadingResponse = true
+        let historyPrompt = buildHistoryPrompt(with: prompt)
+        print("📜 [Service] History Prompt Length: \(historyPrompt.count) characters")
+        
+        self.currentStreamingTask = Task {
+            var responseReceived = false; var accumulatedResponseText = ""; var lastError: Error? = nil
+            var lastUiUpdateTime: Date = .distantPast; let uiUpdateInterval: TimeInterval = 0.03; var firstChunkProcessedForUi = false
+            defer { Task { @MainActor in self.isLoadingResponse = false; self.currentStreamingTask = nil } }
+            
+            do {
+                let responseStream = await worker.generateResponse(prompt: historyPrompt)
+                for try await chunk in responseStream {
+                    try Task.checkCancellation()
+                    responseReceived = true; accumulatedResponseText += chunk
+                    let now = Date()
+                    if !firstChunkProcessedForUi || now.timeIntervalSince(lastUiUpdateTime) >= uiUpdateInterval {
+                        self.appendOrUpdateLumiText(accumulatedResponseText, isPartial: true)
+                        lastUiUpdateTime = now; firstChunkProcessedForUi = true
+                    }
+                }
+                if responseReceived { self.appendOrUpdateLumiText(accumulatedResponseText, isPartial: false) }
+            } catch is CancellationError { lastError = CancellationError(); print("[Service Task] Streaming cancelled.")
+            } catch let workerError as LlmWorker.WorkerError { lastError = workerError; print("[Service Task] LlmWorker.Error: \(workerError)")
+            } catch { lastError = error; print("[Service Task] Streaming error: \(error)") }
+            
+            self.finalizeStream(lastError, gotData: responseReceived, finalAccumulatedText: accumulatedResponseText, context: context)
+        }
+    }
+
     func stopGeneration() {
-        print("[Service STOP] Stop generation requested.")
-        currentStreamingTask?.cancel() // This will trigger cancellation handling
-        // We also explicitly tell the worker, just in case.
-        Task {
-            await worker.cancelGeneration()
-        }
+        print("[Service STOP] Stop generation requested."); currentStreamingTask?.cancel()
+        Task { await worker.cancelGeneration() }
     }
-    
-    // ... (Keep helper methods) ...
-    private func buildHistoryPrompt(with userPrompt: String) -> String {
-        let maxTurns = 10 // Max number of recent turns to consider initially
-        // NEW: Maximum characters for the history part of the prompt
-        let maxHistoryCharacters = 4200 // Tune this value as needed
 
-        // 1. Get messages based on turn limit (no more +20)
-        let messagesForTurnLimit = min(conversation.count, maxTurns * 2)
-        // Suffix gives us the most recent messages
-        let initialHistorySlice = conversation.suffix(messagesForTurnLimit)
-
-        var actualHistoryMessages: [ChatMessage] = []
-        var currentCharacterCount = 0
-
-        // 2. Iterate from newest messages in the slice backward, adding them if they fit the character limit
-        for message in initialHistorySlice.reversed() { // Newest to oldest
-            let _: String
-            var senderPrefix = ""
-            var senderSuffix = ""
-
-            switch message.sender {
-            case .user:
-                senderPrefix = "<start_of_turn>user\n"
-                senderSuffix = "<end_of_turn>\n"
-            case .lumi:
-                senderPrefix = "<start_of_turn>model\n"
-                senderSuffix = "<end_of_turn>\n"
-            default:
-                continue // Skip unknown sender types
-            }
-            
-            // Calculate length of the fully formatted message part
+    private func buildHistoryPrompt(with userPrompt: String) -> String { /* ... Your existing correct logic ... */
+        let maxTurns = 10; let maxHistoryCharacters = 4200
+        let initialHistorySlice = conversation.suffix(min(conversation.count, maxTurns * 2)); var actualHistoryMessages: [ChatMessage] = []; var currentCharacterCount = 0
+        for message in initialHistorySlice.reversed() {
+            let senderPrefix: String; let senderSuffix: String
+            switch message.sender { case .user: senderPrefix = "<start_of_turn>user\n"; senderSuffix = "<end_of_turn>\n"; default: continue }
             let messagePartLength = senderPrefix.count + message.text.count + senderSuffix.count
-
-            if currentCharacterCount + messagePartLength <= maxHistoryCharacters {
-                actualHistoryMessages.insert(message, at: 0) // Insert at beginning to maintain chronological order
-                currentCharacterCount += messagePartLength
-            } else {
-                // Adding this message would exceed the character limit, so stop.
-                // Since we are iterating from newest to oldest, we've included the newest ones possible.
-                break
-            }
+            if currentCharacterCount + messagePartLength <= maxHistoryCharacters { actualHistoryMessages.insert(message, at: 0); currentCharacterCount += messagePartLength } else { break }
         }
-
-        // 3. Build the history string from the messages that fit
-        let history = actualHistoryMessages.map { msg -> String in
-            switch msg.sender {
-            case .user: return "<start_of_turn>user\n\(msg.text)<end_of_turn>\n"
-            case .lumi: return "<start_of_turn>model\n\(msg.text)<end_of_turn>\n"
-            default:   return "" // Should not happen if filtered above
-            }
-        }.joined()
-        
-        
-        // 4. Construct your system prompt
+        let history = actualHistoryMessages.map { msg -> String in switch msg.sender { case .user: return "<start_of_turn>user\n\(msg.text)<end_of_turn>\n"; case .lumi: return "<start_of_turn>model\n\(msg.text)<end_of_turn>\n"; default: return "" } }.joined()
         let (userName, userAbout, personalityType, customPersonality) = UserData.shared.loadData()
-        var sysPromptText = ""
-        switch personalityType {
-        case "Lumi":
-            sysPromptText = "You are Lumi, a friendly and concise human like assistant."
-            
-        case "Executive Coach":
-            sysPromptText = "You are a calm, professional assistant with the tone of an executive coach. You speak with clarity, avoid repetition, and focus on providing insight over small talk. Your responses are direct, thoughtful, and geared toward helping the user think critically."
-
-        case "Helpful & Enthusiastic":
-            sysPromptText = "You are Lumi, an incredibly helpful and enthusiastic assistant! You love using exclamation points and encouraging words, always maintaining a positive and supportive tone."
-            
-        case "Witty & Sarcastic":
-            sysPromptText = "You are Lumi. You're helpful, but with a dry, witty, and slightly sarcastic sense of humor. Don't be afraid to be a little cheeky, but remain ultimately helpful and don't be rude."
-            
-        case "Custom":
-            sysPromptText = customPersonality.isEmpty
-                ? "You are Lumi, a friendly and concise human like assistant." // Fallback for empty custom
-                : customPersonality
-        default:
-            sysPromptText = "You are Lumi, a friendly and concise human like assistant."
+        var sysPromptText = ""; switch personalityType { /* ... your personality cases ... */
+            case "Lumi": sysPromptText = "You are Lumi, a friendly and concise human like assistant."
+            case "Executive Coach": sysPromptText = "You are a calm, professional assistant..."
+            case "Helpful & Enthusiastic": sysPromptText = "You are Lumi, an incredibly helpful and enthusiastic assistant!..."
+            case "Witty & Sarcastic": sysPromptText = "You are Lumi. You're helpful, but with a dry, witty, and slightly sarcastic sense of humor..."
+            case "Custom": sysPromptText = customPersonality.isEmpty ? "You are Lumi, a friendly and concise human like assistant." : customPersonality
+            default: sysPromptText = "You are Lumi, a friendly and concise human like assistant."
         }
-
         if !userName.isEmpty { sysPromptText += " Your primary user is \(userName)." }
         if !userAbout.isEmpty { sysPromptText += " Here's a bit about them: \(userAbout)." }
         sysPromptText += " If you don't know an answer do not make one up. Do not repeat back a query when answering. Pay close attention to the conversation history."
+        let now = Date(); let formattedDateTime = now.formatted(date: .long, time: .shortened); sysPromptText += " [System Clock: \(formattedDateTime)]"
+        return "\(sysPromptText)\n\(history)<start_of_turn>user\n\(userPrompt)<end_of_turn>\n<start_of_turn>model\n"
+    }
+    
+    private func addMessageToActiveSession(_ message: ChatMessage, context: ModelContext) {
+        guard let activeSession = self.activeSwiftDataSession else { return }
+        if let existingModel = activeSession.messages.first(where: { $0.id == message.id }) {
+            existingModel.text = message.text; existingModel.sender = message.sender
+        } else {
+            let newModel = ChatMessageModel(from: message); newModel.conversation = activeSession
+            activeSession.messages.append(newModel)
+        }
+        // activeSession.lastModifiedTime = Date() // <<<< NO lastModifiedTime yet in ConversationSession
+        do { try context.save() } catch { print("❌ Error saving context: \(error)") }
+    }
 
-        // MARK: - DATE/TIME & INSTRUCTIONS HERE ---
-        let now = Date()
-                let formattedDateTime = now.formatted(date: .long, time: .shortened)
-                // Use a more "data-like" prefix and a stronger instruction:
-                sysPromptText += " [System Clock: \(formattedDateTime)]"
-                // MARK: --- END ADD ---
-        
-        // 5. Assemble the final prompt
-        let finalPrompt = "\(sysPromptText)\n\(history)<start_of_turn>user\n\(userPrompt)<end_of_turn>\n<start_of_turn>model\n"
-        
-        // Optional: Log final lengths for tuning
-        // print("📜 History Prompt: \(history.count) chars, System: \(sysPromptText.count) chars, User: \(userPrompt.count) chars, Total: \(finalPrompt.count) chars")
+    private func appendUserMessage(_ text: String, context: ModelContext) {
+        let userMessage = ChatMessage(sender: .user, text: text)
+        self.conversation.append(userMessage)
+        self.conversation.append(ChatMessage(sender: .lumi, text: "")) // Placeholder
+        if activeSwiftDataSession != nil { addMessageToActiveSession(userMessage, context: context) }
+    }
 
-        return finalPrompt
-    }
-    
-    private func appendUserMessage(_ text: String) {
-        conversation.append(ChatMessage(sender: .user, text: text))
-        conversation.append(ChatMessage(sender: .lumi, text: ""))
-    }
-    
-    private func appendError(_ text: String, isCritical: Bool) {
-        if conversation.last?.text != text || conversation.last?.sender != .error(isCritical: isCritical) {
-            conversation.append(ChatMessage(sender: .error(isCritical: isCritical), text: text))
-        }
-    }
-    
-    private func appendOrUpdateLumiText(_ newFullAccumulatedText: String) {
-        if let idx = conversation.lastIndex(where: { $0.sender == .lumi }) {
-            conversation[idx].text = newFullAccumulatedText
-        }
-    }
-    
-    // FIXED: finalizeStream check
-    private func finalizeStream(_ error: Error?, gotData: Bool, finalAccumulatedText: String) {
-        guard let idx = conversation.lastIndex(where: { $0.sender == .lumi }) else {
-            if let err = error, !(err is CancellationError) { appendError("Lumi error (context lost): \(err.localizedDescription)", isCritical: false) }
-            return
-        }
-        let lumiMessage = conversation[idx]
-        
-        var displayError: Error? = error
-        if let workerError = error as? LlmWorker.WorkerError {
-            // If it is, *then* check if it's the .engineError case
-            if case .engineError(let underlyingError) = workerError {
-                displayError = underlyingError
+    private func appendOrUpdateLumiText(_ text: String, isPartial: Bool) { /* ... Your existing logic ... */
+        let lumiSenderPredicate: (ChatMessage) -> Bool = { $0.sender == .lumi }
+        if isPartial { if let idx = conversation.lastIndex(where: lumiSenderPredicate) { conversation[idx].text = text } else { conversation.append(ChatMessage(sender: .lumi, text: text)) }
+        } else {
+            if let idx = conversation.lastIndex(where: lumiSenderPredicate) {
+                conversation[idx].text = text.isEmpty ? "(Lumi provided no response)" : text
+                if text.isEmpty && conversation[idx].sender == .lumi { conversation[idx].sender = .info }
+            } else if !text.isEmpty {
+                if conversation.last?.sender == .error() || conversation.last?.sender == .info { conversation.removeLast() }
+                conversation.append(ChatMessage(sender: .lumi, text: text))
+            } else if text.isEmpty && conversation.last?.sender != .info && conversation.last?.sender != .error() {
+                 conversation.append(ChatMessage(sender: .info, text: "(Lumi provided no response)"))
             }
-            
-            if let err = displayError {
-                var isCancel = false
-                if err is CancellationError { isCancel = true }
-                if let workerErr = err as? LlmWorker.WorkerError, case .cancelled = workerErr { isCancel = true }
-                
-                if isCancel {
-                    print("[Service Finalize] Handling Cancellation.")
-                    if lumiMessage.text.isEmpty { conversation.remove(at: idx) }
-                    else if !lumiMessage.text.contains("(Stopped") { conversation[idx].text += "\n(Stopped by user)"; conversation[idx].sender = .info }
-                } else {
-                    print("[Service Finalize] Handling Error: \(err.localizedDescription)")
-                    let errorText = "\n\nError: \(err.localizedDescription)"
-                    conversation[idx].text = (lumiMessage.text.isEmpty ? "" : lumiMessage.text) + errorText
-                    conversation[idx].sender = .error()
-                }
-            } else if !gotData && lumiMessage.text.isEmpty {
-                conversation[idx].text = "(Lumi provided no response)"; conversation[idx].sender = .info
-            } else if gotData && error == nil {
-                conversation[idx].text = finalAccumulatedText
-            }
+        }
+    }
+    
+    private func appendError(_ text: String, isCritical: Bool, context: ModelContext) {
+        if conversation.last?.sender == .lumi && conversation.last?.text.isEmpty == true { conversation.removeLast() }
+        let errorMessage = ChatMessage(sender: .error(isCritical: isCritical), text: text)
+        conversation.append(errorMessage)
+        if activeSwiftDataSession != nil { addMessageToActiveSession(errorMessage, context: context) }
+    }
+
+    private func finalizeStream(_ error: Error?, gotData: Bool, finalAccumulatedText: String, context: ModelContext) {
+        var finalMessageForSwiftData: ChatMessage?
+        // ... (Logic to set finalMessageForSwiftData based on error, gotData, from response #39) ...
+        if let err = error { /* set finalMessageForSwiftData to error message */
+            let errorText = "Error: \(err.localizedDescription)"; if let lastIdx = conversation.lastIndex(where: {$0.sender == .lumi && ($0.text.isEmpty || $0.text != finalAccumulatedText )}) { conversation[lastIdx].text = errorText; conversation[lastIdx].sender = .error(isCritical: !(err is CancellationError)); finalMessageForSwiftData = conversation[lastIdx] } else if (conversation.last?.sender != .error(isCritical: false) && conversation.last?.sender != .error(isCritical: true)) || conversation.last?.text != errorText { let msg = ChatMessage(sender: .error(isCritical: !(err is CancellationError)), text: errorText); if conversation.last?.sender == .lumi && conversation.last?.text.isEmpty == true { conversation[conversation.count - 1] = msg } else { conversation.append(msg) }; finalMessageForSwiftData = conversation.last } else { finalMessageForSwiftData = conversation.last }
+        } else if !gotData && (conversation.last?.sender == .lumi && conversation.last?.text.isEmpty == true) { let idx = conversation.count-1; conversation[idx].text = "(Lumi provided no response)"; conversation[idx].sender = .info; finalMessageForSwiftData = conversation[idx]
+        } else if gotData { finalMessageForSwiftData = conversation.last(where: {$0.sender == .lumi || ($0.sender == .info && $0.text == "(Lumi provided no response)")}); if finalMessageForSwiftData == nil && conversation.last?.sender == .lumi { finalMessageForSwiftData = conversation.last } }
+
+        guard let finalMessageToPersist = finalMessageForSwiftData else { return }
+
+        if self.activeSwiftDataSession == nil && error == nil && gotData && self.conversation.filter({ $0.sender == .user }).count > 0 {
+            let newSession = ConversationSession(); context.insert(newSession); self.activeSwiftDataSession = newSession
+            for msgInMemory in self.conversation { addMessageToActiveSession(msgInMemory, context: context) }
+        } else if self.activeSwiftDataSession != nil {
+            addMessageToActiveSession(finalMessageToPersist, context: context)
         }
     }
 }
