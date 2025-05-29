@@ -5,7 +5,8 @@ import Foundation
 final class ConversationSession {
     @Attribute(.unique) var id: UUID
     var startTime: Date
-    // var lastModifiedTime: Date // <<<< We'll add this back later
+    var lastModifiedTime: Date
+    var isPinned: Bool = false
 
     @Relationship(deleteRule: .cascade, inverse: \ChatMessageModel.conversation)
     var messages: [ChatMessageModel] = [] // Non-optional, initialized
@@ -13,7 +14,7 @@ final class ConversationSession {
     var title: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, HH:mm" // Using startTime
-        return formatter.string(from: startTime)
+        return formatter.string(from: lastModifiedTime)
     }
     
     // Summary title using startTime
@@ -26,10 +27,15 @@ final class ConversationSession {
         return title
     }
 
-    init(startTime: Date = Date(), messages: [ChatMessageModel] = []) {
-        self.id = UUID()
-        self.startTime = startTime
-        // self.lastModifiedTime = startTime // No lastModifiedTime yet
-        self.messages = messages
+    init(id: UUID = UUID(),
+             startTime: Date = Date(),
+             lastModifiedTime: Date? = nil, // Allow optional for flexibility
+             messages: [ChatMessageModel] = [],
+             isPinned: Bool = false) {     // <<<< 2. ADD isPinned to init
+            self.id = id
+            self.startTime = startTime
+            self.lastModifiedTime = lastModifiedTime ?? startTime // Default to startTime if not provided
+            self.messages = messages
+            self.isPinned = isPinned 
     }
 }

@@ -144,7 +144,8 @@ class LlmInferenceService: ObservableObject {
             let newModel = ChatMessageModel(from: message); newModel.conversation = activeSession
             activeSession.messages.append(newModel)
         }
-        // activeSession.lastModifiedTime = Date() // <<<< NO lastModifiedTime yet in ConversationSession
+        activeSession.lastModifiedTime = Date()
+        
         do { try context.save() } catch { print("❌ Error saving context: \(error)") }
     }
 

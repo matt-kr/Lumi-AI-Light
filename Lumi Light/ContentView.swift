@@ -22,10 +22,11 @@ struct ContentView: View {
                     openPercentage: openPercentage,
                     // MARK: - Provide the closeMenuAction -
                     closeMenuAction: {
-                        print("ContentView: closeMenuAction called from SideMenu! Closing menu.") // For debugging
-                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7)) { // Or your preferred animation
+                        print("ContentView: closeMenuAction called from SideMenu! Closing menu.")
+                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7)) {
                             currentMenuOffset = 0 // This closes the menu
                         }
+                        hideKeyboard() // Also hide keyboard
                     }
                 )
                 .frame(width: menuWidth)
@@ -41,6 +42,7 @@ struct ContentView: View {
                             withAnimation(.interactiveSpring()) {
                                 currentMenuOffset = 0
                             }
+                            hideKeyboard() // Also hide keyboard
                         }
                 }
                 .offset(x: clampedOffset)
@@ -58,7 +60,7 @@ struct ContentView: View {
                         }
                     } label: {
                         Image(systemName: "line.3.horizontal")
-                            .foregroundColor(Color.sl_textPrimary)
+                            .foregroundColor(Color.sl_textPrimary) // Ensure this color is defined
                     }
                 }
             }
@@ -70,7 +72,6 @@ struct ContentView: View {
     }
 
     func dragGesture() -> some Gesture {
-        // ... (Your existing dragGesture logic from response #36) ...
         DragGesture(minimumDistance: 10)
             .updating($dragGestureOffset) { value, state, transaction in
                 if self.currentMenuOffset < self.menuWidth * 0.25 && value.translation.width > 15 {
@@ -97,7 +98,7 @@ struct ContentView: View {
                     newTargetOffset = 0
                 }
 
-                if newTargetOffset == menuWidth {
+                if newTargetOffset == menuWidth { // If menu snaps open
                     self.hideKeyboard()
                 }
                 currentMenuOffset = newTargetOffset

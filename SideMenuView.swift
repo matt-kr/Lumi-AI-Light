@@ -9,11 +9,10 @@ struct SideMenuView: View {
     @Environment(\.modelContext) private var modelContext
 
     // Sorting by startTime as per this stable version
-    @Query(sort: \ConversationSession.startTime, order: .reverse) private var conversationHistory: [ConversationSession]
+    @Query(sort: \ConversationSession.lastModifiedTime, order: .reverse) private var conversationHistory: [ConversationSession]
     
-    var closeMenuAction: (() -> Void)? // This should be here
+    var closeMenuAction: (() -> Void)? // This is correctly declared
 
-    // ... (other properties: glowColor, nasalizationFont, @State vars - KEEP AS IS) ...
     let glowColor = Color.sl_glowColor
     let nasalizationFont = "Nasalization-Regular"
 
@@ -22,9 +21,16 @@ struct SideMenuView: View {
     @State private var processingImage = false
     @State private var imageError: String?
 
+    // Explicit Initializer (already in your provided code, ensuring it matches)
+    init(openPercentage: CGFloat,
+         onHistoryChatSelected: (() -> Void)? = nil, // Placeholder for future use if needed
+         closeMenuAction: (() -> Void)? = nil) {
+        self.openPercentage = openPercentage
+        // self.onHistoryChatSelected = onHistoryChatSelected // We are not using this one right now
+        self.closeMenuAction = closeMenuAction
+    }
 
-    // MARK: - Extracted Subviews (profileHeaderView, navigationLinksView, footerView, menuRow, historyRow - KEEP AS IS)
-    // These are based on your provided code.
+    // MARK: - Extracted Subviews
     @ViewBuilder
     private var profileHeaderView: some View {
         VStack(alignment: .leading) {
@@ -94,7 +100,6 @@ struct SideMenuView: View {
             Button {
                 print("Attempting to delete chat \(session.id) - \(session.title)")
                 modelContext.delete(session)
-                // try? modelContext.save() // Optional
             } label: {
                 Image(systemName: "xmark")
                     .foregroundColor(.red)
@@ -118,7 +123,7 @@ struct SideMenuView: View {
         Button {
             print("Starting New Chat via Side Menu")
             llmService.startNewChat(context: modelContext)
-            closeMenuAction?() // <<<< ADD THIS CALL to close the menu
+            closeMenuAction?() // <<<< ENSURE THIS CALL IS PRESENT
         } label: {
             HStack {
                 Spacer()
@@ -155,7 +160,7 @@ struct SideMenuView: View {
                         Button {
                             print("Tapping to load chat: \(session.title)")
                             llmService.loadConversation(sessionToLoad: session)
-                            closeMenuAction?() // <<<< ADD THIS CALL to close the menu
+                            closeMenuAction?() // <<<< ENSURE THIS CALL IS PRESENT
                         } label: {
                              historyRow(session: session)
                         }
@@ -168,7 +173,7 @@ struct SideMenuView: View {
             Spacer()
             footerView
         }
-        .overlay( /* ... your existing overlay ... */
+        .overlay(
             Rectangle().fill(glowColor).frame(width: 1.5).shadow(color: glowColor.opacity(0.8), radius: 5, x: 2, y: 0).opacity(openPercentage),
             alignment: .trailing
         )
@@ -177,7 +182,7 @@ struct SideMenuView: View {
         .edgesIgnoringSafeArea(.bottom)
         .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .images, photoLibrary: .shared())
         .onChange(of: selectedPhotoItem) { _, newItem in
-            Task { /* ... your existing image processing logic ... */
+            Task {
                 processingImage = true; imageError = nil
                 if let item = newItem {
                     do {
@@ -208,7 +213,8 @@ struct SideMenuView: View {
 
     SideMenuView(
         openPercentage: 1.0,
-        closeMenuAction: { print("Preview: closeMenuAction called!") } // Dummy action for preview
+        // onHistoryChatSelected is not used in this simplified version, so pass nil or remove from init
+        closeMenuAction: { print("Preview: closeMenuAction called!") }
     )
         .modelContainer(for: [ConversationSession.self, ChatMessageModel.self], inMemory: true)
         .environmentObject(llmServicePreview)
