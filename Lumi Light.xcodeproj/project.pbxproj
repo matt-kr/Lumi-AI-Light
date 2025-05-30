@@ -16,6 +16,7 @@
 		55B48D2D2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */; };
 		55B48D312DCFF120009D683B /* nasalization-rg 2.otf in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D302DCFF120009D683B /* nasalization-rg 2.otf */; };
 		55C996552DE387C10083A116 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C996542DE387C10083A116 /* ChatView.swift */; };
+		55C9969F2DE947F50083A116 /* RenamePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C9969E2DE947F50083A116 /* RenamePromptView.swift */; };
 		94C0BE7FC08B0B15CE755EE4 /* Pods_Lumi_Light.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53E2D1C3E8A9EE341DEBF82C /* Pods_Lumi_Light.framework */; };
 /* End PBXBuildFile section */
 
@@ -51,6 +52,7 @@
 		55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */ = {isa = PBXFileReference; lastKnownFileType = file; path = "gemma-2b-it-gpu-int8.tflite"; sourceTree = "<group>"; };
 		55B48D302DCFF120009D683B /* nasalization-rg 2.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "nasalization-rg 2.otf"; sourceTree = "<group>"; };
 		55C996542DE387C10083A116 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		55C9969E2DE947F50083A116 /* RenamePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenamePromptView.swift; sourceTree = "<group>"; };
 		AA0ACEC8E44C0D5BC1F9EC6D /* Pods-Lumi Light.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.release.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -123,6 +125,7 @@
 		55B48CC52DCFB6BE009D683B = {
 			isa = PBXGroup;
 			children = (
+				55C9969E2DE947F50083A116 /* RenamePromptView.swift */,
 				55C996542DE387C10083A116 /* ChatView.swift */,
 				552F8EE72DE14F0300BA5F7A /* SettingsView.swift */,
 				552F8EE92DE14F0300BA5F7A /* SideMenuView.swift */,
@@ -331,6 +334,7 @@
 				552F8EEC2DE14F0300BA5F7A /* SideMenuView.swift in Sources */,
 				552F8EE62DE1002100BA5F7A /* LlmWorker.swift in Sources */,
 				5581E4E92DD1B3270091C7A4 /* GrowingTextEditor.swift in Sources */,
+				55C9969F2DE947F50083A116 /* RenamePromptView.swift in Sources */,
 				55B48D172DCFD548009D683B /* LlmInferenceService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
