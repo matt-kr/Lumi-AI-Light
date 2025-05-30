@@ -14,7 +14,8 @@ class LlmInferenceService: ObservableObject {
     @Published private(set) var isLoadingModel = false
     private var currentStreamingTask: Task<Void, Never>?
 
-    private var activeSwiftDataSession: ConversationSession?
+    // MODIFIED: Made this @Published and not private so SideMenuView can observe it
+    @Published var activeSwiftDataSession: ConversationSession?
 
     init(modelName: String = "gemma-2b-it-gpu-int8") {
         self.modelName = modelName
@@ -45,6 +46,7 @@ class LlmInferenceService: ObservableObject {
         if let activeSession = self.activeSwiftDataSession {
             print("ℹ️ Closing active SwiftData session: \(activeSession.id). It should be saved turn-by-turn.")
         }
+        // This correctly sets the active session to nil for a new chat
         self.activeSwiftDataSession = nil
         self.conversation.removeAll()
         self.isLoadingResponse = false
@@ -65,6 +67,7 @@ class LlmInferenceService: ObservableObject {
         if messageModels.isEmpty { print("ℹ️ Loaded session has no messages.") }
         else { print("✅ Loaded \(self.conversation.count) messages.") }
 
+        // This correctly updates the active session
         self.activeSwiftDataSession = sessionToLoad
         self.isLoadingResponse = false
         self.initErrorMessage = nil
@@ -110,7 +113,11 @@ class LlmInferenceService: ObservableObject {
         Task { await worker.cancelGeneration() }
     }
 
-    private func buildHistoryPrompt(with userPrompt: String) -> String { /* ... Your existing correct logic ... */
+    // buildHistoryPrompt, addMessageToActiveSession, appendUserMessage,
+    // appendOrUpdateLumiText, appendError, and finalizeStream remain unchanged
+    // as their logic for setting activeSwiftDataSession (in finalizeStream) is already correct.
+
+    private func buildHistoryPrompt(with userPrompt: String) -> String {
         let maxTurns = 10; let maxHistoryCharacters = 4200
         let initialHistorySlice = conversation.suffix(min(conversation.count, maxTurns * 2)); var actualHistoryMessages: [ChatMessage] = []; var currentCharacterCount = 0
         for message in initialHistorySlice.reversed() {
@@ -121,7 +128,7 @@ class LlmInferenceService: ObservableObject {
         }
         let history = actualHistoryMessages.map { msg -> String in switch msg.sender { case .user: return "<start_of_turn>user\n\(msg.text)<end_of_turn>\n"; case .lumi: return "<start_of_turn>model\n\(msg.text)<end_of_turn>\n"; default: return "" } }.joined()
         let (userName, userAbout, personalityType, customPersonality) = UserData.shared.loadData()
-        var sysPromptText = ""; switch personalityType { /* ... your personality cases ... */
+        var sysPromptText = ""; switch personalityType {
             case "Lumi": sysPromptText = "You are Lumi, a friendly and concise human like assistant."
             case "Executive Coach": sysPromptText = "You are a calm, professional assistant..."
             case "Helpful & Enthusiastic": sysPromptText = "You are Lumi, an incredibly helpful and enthusiastic assistant!..."
@@ -156,7 +163,7 @@ class LlmInferenceService: ObservableObject {
         if activeSwiftDataSession != nil { addMessageToActiveSession(userMessage, context: context) }
     }
 
-    private func appendOrUpdateLumiText(_ text: String, isPartial: Bool) { /* ... Your existing logic ... */
+    private func appendOrUpdateLumiText(_ text: String, isPartial: Bool) {
         let lumiSenderPredicate: (ChatMessage) -> Bool = { $0.sender == .lumi }
         if isPartial { if let idx = conversation.lastIndex(where: lumiSenderPredicate) { conversation[idx].text = text } else { conversation.append(ChatMessage(sender: .lumi, text: text)) }
         } else {
@@ -167,7 +174,7 @@ class LlmInferenceService: ObservableObject {
                 if conversation.last?.sender == .error() || conversation.last?.sender == .info { conversation.removeLast() }
                 conversation.append(ChatMessage(sender: .lumi, text: text))
             } else if text.isEmpty && conversation.last?.sender != .info && conversation.last?.sender != .error() {
-                 conversation.append(ChatMessage(sender: .info, text: "(Lumi provided no response)"))
+                conversation.append(ChatMessage(sender: .info, text: "(Lumi provided no response)"))
             }
         }
     }
@@ -181,19 +188,22 @@ class LlmInferenceService: ObservableObject {
 
     private func finalizeStream(_ error: Error?, gotData: Bool, finalAccumulatedText: String, context: ModelContext) {
         var finalMessageForSwiftData: ChatMessage?
-        // ... (Logic to set finalMessageForSwiftData based on error, gotData, from response #39) ...
-        if let err = error { /* set finalMessageForSwiftData to error message */
+        if let err = error {
             let errorText = "Error: \(err.localizedDescription)"; if let lastIdx = conversation.lastIndex(where: {$0.sender == .lumi && ($0.text.isEmpty || $0.text != finalAccumulatedText )}) { conversation[lastIdx].text = errorText; conversation[lastIdx].sender = .error(isCritical: !(err is CancellationError)); finalMessageForSwiftData = conversation[lastIdx] } else if (conversation.last?.sender != .error(isCritical: false) && conversation.last?.sender != .error(isCritical: true)) || conversation.last?.text != errorText { let msg = ChatMessage(sender: .error(isCritical: !(err is CancellationError)), text: errorText); if conversation.last?.sender == .lumi && conversation.last?.text.isEmpty == true { conversation[conversation.count - 1] = msg } else { conversation.append(msg) }; finalMessageForSwiftData = conversation.last } else { finalMessageForSwiftData = conversation.last }
         } else if !gotData && (conversation.last?.sender == .lumi && conversation.last?.text.isEmpty == true) { let idx = conversation.count-1; conversation[idx].text = "(Lumi provided no response)"; conversation[idx].sender = .info; finalMessageForSwiftData = conversation[idx]
         } else if gotData { finalMessageForSwiftData = conversation.last(where: {$0.sender == .lumi || ($0.sender == .info && $0.text == "(Lumi provided no response)")}); if finalMessageForSwiftData == nil && conversation.last?.sender == .lumi { finalMessageForSwiftData = conversation.last } }
 
         guard let finalMessageToPersist = finalMessageForSwiftData else { return }
 
+        // This correctly updates activeSwiftDataSession when a new session is created
         if self.activeSwiftDataSession == nil && error == nil && gotData && self.conversation.filter({ $0.sender == .user }).count > 0 {
             let newSession = ConversationSession(); context.insert(newSession); self.activeSwiftDataSession = newSession
-            for msgInMemory in self.conversation { addMessageToActiveSession(msgInMemory, context: context) }
-        } else if self.activeSwiftDataSession != nil {
+            for msgInMemory in self.conversation { addMessageToActiveSession(msgInMemory, context: context) } // This should now use the newly set activeSwiftDataSession
+        } else if self.activeSwiftDataSession != nil { // If a session was already active, just add the final message
             addMessageToActiveSession(finalMessageToPersist, context: context)
         }
     }
 }
+
+// Assuming ChatMessage and ChatMessageModel are defined elsewhere and compatible.
+// Also assuming LlmWorker, UserData, and SenderType (with its .user, .lumi, .info, .error cases) are defined.
