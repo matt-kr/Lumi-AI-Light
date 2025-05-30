@@ -1,3 +1,11 @@
+//
+//  NavigatorGameView.swift
+//  Lumi Light
+//
+//  Created by Matt Krussow on 5/30/25.
+//
+
+
 // File: LumiverseGame/Navigator/NavigatorGameView.swift
 import SwiftUI
 import SpriteKit

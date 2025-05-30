@@ -1,3 +1,11 @@
+//
+//  NavigatorScene.swift
+//  Lumi Light
+//
+//  Created by Matt Krussow on 5/30/25.
+//
+
+
 // File: LumiverseGame/Navigator/NavigatorScene.swift
 import SpriteKit
 // import GameplayKit // Keep for later use (randomization, AI, etc.)

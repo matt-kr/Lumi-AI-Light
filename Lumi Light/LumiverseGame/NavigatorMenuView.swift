@@ -1,9 +1,17 @@
+//
+//  NavigatorMenuView.swift
+//  Lumi Light
+//
+//  Created by Matt Krussow on 5/30/25.
+//
+
+
 // File: LumiverseGame/Navigator/NavigatorMenuView.swift
-import SwiftUI
+/* import SwiftUI
 
 // TODO: Consider moving this Color extension to a more global utilities file if used elsewhere.
 extension Color {
-    init(hex: String) {
+    init(hex: String) { // redundant with colorpalette
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
@@ -122,4 +130,5 @@ struct NavigatorMenuView_Previews: PreviewProvider {
         }
         // .preferredColorScheme(.dark) // Preview in dark mode
     }
-}
+}*/
+
