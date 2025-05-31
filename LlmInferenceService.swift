@@ -12,6 +12,7 @@ class LlmInferenceService: ObservableObject {
     @Published var initErrorMessage: String?
     @Published private(set) var isModelReady = false
     @Published private(set) var isLoadingModel = false
+    @Published var chatAreaGlowOpacity: Double = 0.0
     private var currentStreamingTask: Task<Void, Never>?
 
     // MODIFIED: Made this @Published and not private so SideMenuView can observe it

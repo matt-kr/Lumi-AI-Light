@@ -12,6 +12,7 @@
 		552F8EEB2DE14F0300BA5F7A /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE82DE14F0300BA5F7A /* UserData.swift */; };
 		552F8EEC2DE14F0300BA5F7A /* SideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE92DE14F0300BA5F7A /* SideMenuView.swift */; };
 		5581E4E92DD1B3270091C7A4 /* GrowingTextEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */; };
+		558D2E032DEA7ABF00B6AB12 /* DeleteConfirmationPromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558D2E022DEA7ABF00B6AB12 /* DeleteConfirmationPromptView.swift */; };
 		55B48D172DCFD548009D683B /* LlmInferenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55B48D162DCFD548009D683B /* LlmInferenceService.swift */; };
 		55B48D2D2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D2C2DCFECC2009D683B /* gemma-2b-it-gpu-int8.tflite */; };
 		55B48D312DCFF120009D683B /* nasalization-rg 2.otf in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D302DCFF120009D683B /* nasalization-rg 2.otf */; };
@@ -45,6 +46,7 @@
 		552F8EE82DE14F0300BA5F7A /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
 		552F8EE92DE14F0300BA5F7A /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
 		5581E4E82DD1B3270091C7A4 /* GrowingTextEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrowingTextEditor.swift; sourceTree = "<group>"; };
+		558D2E022DEA7ABF00B6AB12 /* DeleteConfirmationPromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmationPromptView.swift; sourceTree = "<group>"; };
 		55B48CCE2DCFB6BE009D683B /* Lumi Light.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Lumi Light.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48CDD2DCFB6BF009D683B /* Lumi LightTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		55B48CE72DCFB6BF009D683B /* Lumi LightUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Lumi LightUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -125,6 +127,7 @@
 		55B48CC52DCFB6BE009D683B = {
 			isa = PBXGroup;
 			children = (
+				558D2E022DEA7ABF00B6AB12 /* DeleteConfirmationPromptView.swift */,
 				55C9969E2DE947F50083A116 /* RenamePromptView.swift */,
 				55C996542DE387C10083A116 /* ChatView.swift */,
 				552F8EE72DE14F0300BA5F7A /* SettingsView.swift */,
@@ -328,6 +331,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				558D2E032DEA7ABF00B6AB12 /* DeleteConfirmationPromptView.swift in Sources */,
 				55C996552DE387C10083A116 /* ChatView.swift in Sources */,
 				552F8EEA2DE14F0300BA5F7A /* SettingsView.swift in Sources */,
 				552F8EEB2DE14F0300BA5F7A /* UserData.swift in Sources */,

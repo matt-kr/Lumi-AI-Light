@@ -1,19 +1,47 @@
 import SwiftUI
+import SwiftData
 
-// Ensure SideMenuNavigationTarget enum is defined and accessible
-// (e.g., from SideMenuView.swift or a shared file)
-// enum SideMenuNavigationTarget: Hashable { case settings }
+struct ScreenMarginGlowView: View {
+    var glowOpacity: Double // Animates from LlmInferenceService (e.g., 0.15 to 1.0)
+    let marginWidth: CGFloat = 8.0 // The glow exists in this margin from screen edge, inward
+    let glowColorBaseOpacity: CGFloat = 0.75 // Max opacity of the glow color within the margin when glowOpacity is 1.0
+    let glowBlurRadius: CGFloat = 10      // How much the glow color is blurred within the margin
+
+    var body: some View {
+        Rectangle() // Full screen glow source
+            .fill(Color.sl_glowColor) // Use your app's theme glow color
+            .opacity(glowOpacity * glowColorBaseOpacity) // Overall intensity driven by animation
+            .blur(radius: glowBlurRadius)
+            .mask( // This mask creates an 8pt opaque border, transparent center
+                GeometryReader { geo in
+                    Path { path in
+                        let outerRect = CGRect(origin: .zero, size: geo.size)
+                        // The inner rectangle is inset by marginWidth, creating the "hole"
+                        let innerRect = outerRect.insetBy(dx: marginWidth, dy: marginWidth)
+                        path.addRect(outerRect)
+                        path.addRect(innerRect)
+                    }
+                    .fill(style: FillStyle(eoFill: true, antialiased: true)) // Even-odd fill rule
+                }
+            )
+            .ignoresSafeArea()
+            .allowsHitTesting(false)
+            .transition(.opacity)
+    }
+}
 
 struct ContentView: View {
     @EnvironmentObject private var llmService: LlmInferenceService
     @EnvironmentObject private var userData: UserData
-    // @Environment(\.modelContext) private var modelContext
+    @Environment(\.modelContext) private var modelContext
 
     private let menuWidth: CGFloat = 250
     @State private var currentMenuOffset: CGFloat = 0
     @GestureState private var dragGestureOffset: CGFloat = .zero
-
+    
     @State private var sessionToRename: ConversationSession? = nil
+    @State private var sessionToConfirmDelete: ConversationSession? = nil
+    @State private var showDeleteConfirmationPrompt = false
 
     private var actualVisualOffset: CGFloat { currentMenuOffset + dragGestureOffset }
     private var clampedOffset: CGFloat { max(0, min(actualVisualOffset, menuWidth)) }
@@ -23,24 +51,22 @@ struct ContentView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 
-    // MARK: - Extracted View Layers
     private var chatViewLayer: some View {
-        ZStack { // ChatView Container
+        ZStack {
             ChatView()
-                .disabled(openPercentage > 0.01 && dragGestureOffset == .zero && sessionToRename == nil)
-
-            Color.black // Dimming overlay for side menu
-                .opacity(openPercentage * 0.4 * (sessionToRename != nil ? 0.3 : 1.0) )
-                .allowsHitTesting(openPercentage > 0.01 && sessionToRename == nil)
+                .disabled(openPercentage > 0.01 && dragGestureOffset == .zero && sessionToRename == nil && !showDeleteConfirmationPrompt)
+            Color.black
+                .opacity(openPercentage * 0.4 * (sessionToRename != nil || showDeleteConfirmationPrompt ? 0.3 : 1.0) )
+                .allowsHitTesting(openPercentage > 0.01 && sessionToRename == nil && !showDeleteConfirmationPrompt)
                 .onTapGesture {
-                    withAnimation(.interactiveSpring()) {
-                        currentMenuOffset = 0
+                    if openPercentage > 0.01 && sessionToRename == nil && !showDeleteConfirmationPrompt {
+                        withAnimation(.interactiveSpring()) { currentMenuOffset = 0 }
+                        hideKeyboard()
                     }
-                    hideKeyboard()
                 }
         }
         .offset(x: clampedOffset)
-        .blur(radius: (openPercentage * 4.0) + (sessionToRename != nil ? 3.0 : 0.0) )
+        .blur(radius: (openPercentage * 4.0) + (sessionToRename != nil || showDeleteConfirmationPrompt ? 3.0 : 0.0) )
         .zIndex(1)
     }
 
@@ -55,26 +81,28 @@ struct ContentView: View {
             },
             onRequestRename: { session in
                 self.sessionToRename = session
+            },
+            onRequestDeleteConfirmation: { session in
+                self.sessionToConfirmDelete = session
+                self.showDeleteConfirmationPrompt = true
             }
-            // No activeNavigationTarget argument
         )
         .frame(width: menuWidth)
         .offset(x: clampedOffset - menuWidth)
         .zIndex(0)
     }
 
-    @ViewBuilder // Use @ViewBuilder for conditional content
+    @ViewBuilder
     private var renameModalLayer: some View {
         if sessionToRename != nil {
-            ZStack { // Inner ZStack for centering modal
+            ZStack {
                 Color.black.opacity(0.55)
                     .ignoresSafeArea()
                     .onTapGesture {
                         self.sessionToRename = nil
                         hideKeyboard()
                     }
-
-                RenamePromptView( // Assuming RenamePromptView.swift exists
+                RenamePromptView(
                     sessionToRename: sessionToRename!,
                     onSave: {
                         self.sessionToRename = nil
@@ -89,51 +117,95 @@ struct ContentView: View {
             .zIndex(2)
             .transition(.asymmetric(
                 insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                               .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
+                                     .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
                 removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                               .animation(.easeOut(duration: 0.25))
+                                     .animation(.easeOut(duration: 0.25))
             ))
         }
     }
+    
+    @ViewBuilder
+    private var deleteModalLayer: some View {
+        if showDeleteConfirmationPrompt, let session = sessionToConfirmDelete {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+                .transition(.opacity)
+                .onTapGesture {
+                    self.showDeleteConfirmationPrompt = false
+                    self.sessionToConfirmDelete = nil
+                }
 
-    // MARK: - Body
+            DeleteConfirmationPromptView(
+                sessionTitle: session.title,
+                onConfirmDelete: {
+                    modelContext.delete(session)
+                    self.showDeleteConfirmationPrompt = false
+                    self.sessionToConfirmDelete = nil
+                },
+                onCancel: {
+                    self.showDeleteConfirmationPrompt = false
+                    self.sessionToConfirmDelete = nil
+                }
+            )
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
+                                     .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
+                removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
+                                     .animation(.easeOut(duration: 0.25))
+            ))
+            .zIndex(3)
+        }
+    }
+
     var body: some View {
-        NavigationView {
-            ZStack(alignment: .leading) {
-                chatViewLayer    // Using extracted layer
-                sideMenuViewLayer  // Using extracted layer
-                renameModalLayer // Using extracted layer
-            }
-            .gesture(dragGesture())
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        hideKeyboard()
-                        withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7)) {
-                            currentMenuOffset = (currentMenuOffset == 0) ? menuWidth : 0
+        ZStack {
+            NavigationView {
+                ZStack(alignment: .leading) {
+                    sideMenuViewLayer
+                    chatViewLayer
+                }
+                .gesture(dragGesture())
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            hideKeyboard()
+                            withAnimation(.interactiveSpring(response: 0.4, dampingFraction: 0.7)) {
+                                currentMenuOffset = (currentMenuOffset == 0) ? menuWidth : 0
+                            }
+                        } label: {
+                            Image(systemName: "line.3.horizontal")
+                                .foregroundColor(Color.sl_textPrimary)
                         }
-                    } label: {
-                        Image(systemName: "line.3.horizontal")
-                            .foregroundColor(Color.sl_textPrimary)
                     }
                 }
+                .navigationTitle("Lumi")
+                .navigationBarTitleDisplayMode(.inline)
             }
-            .navigationTitle("Lumi")
-            .navigationBarTitleDisplayMode(.inline)
-          
             .animation(.interactiveSpring(response: 0.4, dampingFraction: 0.7), value: currentMenuOffset)
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: sessionToRename != nil)
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: showDeleteConfirmationPrompt)
+
+
+            // Global Glow Overlay - on top of NavigationView
+            if llmService.chatAreaGlowOpacity > 0.05 { // Use a small threshold to ensure it's meant to be visible
+                ScreenMarginGlowView(glowOpacity: llmService.chatAreaGlowOpacity)
+                    .zIndex(1.5) // Above NavigationView content (zIndex 1 for chatViewLayer), below modals (zIndex 2, 3)
+            }
+
+            renameModalLayer
+            deleteModalLayer
         }
         .environment(\.colorScheme, .dark)
     }
 
     func dragGesture() -> some Gesture {
-        // ... (Your existing dragGesture function) ...
         DragGesture(minimumDistance: 10)
             .updating($dragGestureOffset) { value, state, transaction in
+                if sessionToRename != nil || showDeleteConfirmationPrompt {
+                    state = .zero; return
+                }
                 if currentMenuOffset == 0 && value.startLocation.x > 50 {
-                     state = 0
-                     return
+                    state = 0; return
                 }
                 if self.currentMenuOffset < self.menuWidth * 0.25 && value.translation.width > 15 {
                     self.hideKeyboard()
@@ -141,6 +213,8 @@ struct ContentView: View {
                 state = value.translation.width
             }
             .onEnded { value in
+                if sessionToRename != nil || showDeleteConfirmationPrompt { return }
+
                 let combinedOffset = currentMenuOffset + value.translation.width
                 let predictedEndOffset = currentMenuOffset + value.predictedEndTranslation.width
                 let threshold = menuWidth / 3
@@ -159,9 +233,7 @@ struct ContentView: View {
                     newTargetOffset = 0
                 }
 
-                if newTargetOffset == menuWidth {
-                    self.hideKeyboard()
-                }
+                if newTargetOffset == menuWidth { self.hideKeyboard() }
                 currentMenuOffset = newTargetOffset
             }
     }
@@ -171,5 +243,5 @@ struct ContentView: View {
     ContentView()
         .environmentObject(LlmInferenceService())
         .environmentObject(UserData.shared)
-        .modelContainer(for: [ConversationSession.self, ChatMessageModel.self], inMemory: true)
+        .modelContainer(try! ModelContainer(for: ConversationSession.self, ChatMessageModel.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)))
 }
