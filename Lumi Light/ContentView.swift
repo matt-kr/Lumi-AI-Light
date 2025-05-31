@@ -1,32 +1,33 @@
 import SwiftUI
 import SwiftData
 
-struct ScreenMarginGlowView: View {
-    var glowOpacity: Double // Animates from LlmInferenceService (e.g., 0.15 to 1.0)
-    let marginWidth: CGFloat = 8.0 // The glow exists in this margin from screen edge, inward
-    let glowColorBaseOpacity: CGFloat = 0.75 // Max opacity of the glow color within the margin when glowOpacity is 1.0
-    let glowBlurRadius: CGFloat = 10      // How much the glow color is blurred within the margin
+struct ChatAreaGlobalGlowOverlay: View { // Keep this if you use it, or remove if not
+    var glowOpacity: Double
+    let horizontalInset: CGFloat = 15
+    let topInset: CGFloat = 55
+    let bottomInset: CGFloat = 70
+    let glowCornerRadius: CGFloat = 12
+    let shadowRadiusConfig: CGFloat = 10
+    let shadowOpacityFactor: CGFloat = 0.6
 
     var body: some View {
-        Rectangle() // Full screen glow source
-            .fill(Color.sl_glowColor) // Use your app's theme glow color
-            .opacity(glowOpacity * glowColorBaseOpacity) // Overall intensity driven by animation
-            .blur(radius: glowBlurRadius)
-            .mask( // This mask creates an 8pt opaque border, transparent center
-                GeometryReader { geo in
-                    Path { path in
-                        let outerRect = CGRect(origin: .zero, size: geo.size)
-                        // The inner rectangle is inset by marginWidth, creating the "hole"
-                        let innerRect = outerRect.insetBy(dx: marginWidth, dy: marginWidth)
-                        path.addRect(outerRect)
-                        path.addRect(innerRect)
-                    }
-                    .fill(style: FillStyle(eoFill: true, antialiased: true)) // Even-odd fill rule
-                }
-            )
-            .ignoresSafeArea()
-            .allowsHitTesting(false)
-            .transition(.opacity)
+        GeometryReader { screenProxy in
+            RoundedRectangle(cornerRadius: glowCornerRadius)
+                .fill(Color.clear)
+                .shadow(
+                    color: Color.sl_glowColor.opacity(glowOpacity * shadowOpacityFactor),
+                    radius: glowOpacity > 0.05 ? shadowRadiusConfig : 0
+                )
+                .frame(
+                    width: screenProxy.size.width - (2 * horizontalInset),
+                    height: screenProxy.size.height - topInset - bottomInset
+                )
+                .position(x: screenProxy.size.width / 2,
+                          y: topInset + (screenProxy.size.height - topInset - bottomInset) / 2)
+        }
+        .ignoresSafeArea()
+        .allowsHitTesting(false)
+        .transition(.opacity)
     }
 }
 
@@ -40,6 +41,7 @@ struct ContentView: View {
     @GestureState private var dragGestureOffset: CGFloat = .zero
     
     @State private var sessionToRename: ConversationSession? = nil
+
     @State private var sessionToConfirmDelete: ConversationSession? = nil
     @State private var showDeleteConfirmationPrompt = false
 
@@ -54,6 +56,7 @@ struct ContentView: View {
     private var chatViewLayer: some View {
         ZStack {
             ChatView()
+                .id(llmService.activeSwiftDataSession?.id) // KEEP THIS
                 .disabled(openPercentage > 0.01 && dragGestureOffset == .zero && sessionToRename == nil && !showDeleteConfirmationPrompt)
             Color.black
                 .opacity(openPercentage * 0.4 * (sessionToRename != nil || showDeleteConfirmationPrompt ? 0.3 : 1.0) )
@@ -93,7 +96,7 @@ struct ContentView: View {
     }
 
     @ViewBuilder
-    private var renameModalLayer: some View {
+    private var renameModalLayer: some View { /* ... as before ... */
         if sessionToRename != nil {
             ZStack {
                 Color.black.opacity(0.55)
@@ -117,16 +120,16 @@ struct ContentView: View {
             .zIndex(2)
             .transition(.asymmetric(
                 insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                                     .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
+                                      .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
                 removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                                     .animation(.easeOut(duration: 0.25))
+                                      .animation(.easeOut(duration: 0.25))
             ))
         }
     }
     
     @ViewBuilder
     private var deleteModalLayer: some View {
-        if showDeleteConfirmationPrompt, let session = sessionToConfirmDelete {
+        if showDeleteConfirmationPrompt, let sessionToDelete = sessionToConfirmDelete {
             Color.black.opacity(0.45)
                 .ignoresSafeArea()
                 .transition(.opacity)
@@ -136,9 +139,17 @@ struct ContentView: View {
                 }
 
             DeleteConfirmationPromptView(
-                sessionTitle: session.title,
+                sessionTitle: sessionToDelete.title,
                 onConfirmDelete: {
-                    modelContext.delete(session)
+                    let deletedSessionID = sessionToDelete.id
+                    modelContext.delete(sessionToDelete)
+                    // try? modelContext.save()
+
+                    llmService.handleSessionDeletion(
+                        deletedSessionID: deletedSessionID,
+                        newChatContext: modelContext
+                    )
+                    
                     self.showDeleteConfirmationPrompt = false
                     self.sessionToConfirmDelete = nil
                 },
@@ -149,9 +160,9 @@ struct ContentView: View {
             )
             .transition(.asymmetric(
                 insertion: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                                     .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
+                                      .animation(.spring(response: 0.4, dampingFraction: 0.75, blendDuration: 0.2)),
                 removal: .opacity.combined(with: .scale(scale: 0.9, anchor: .center))
-                                     .animation(.easeOut(duration: 0.25))
+                                      .animation(.easeOut(duration: 0.25))
             ))
             .zIndex(3)
         }
@@ -185,12 +196,12 @@ struct ContentView: View {
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: sessionToRename != nil)
             .animation(.spring(response: 0.35, dampingFraction: 0.8), value: showDeleteConfirmationPrompt)
 
-
-            // Global Glow Overlay - on top of NavigationView
-            if llmService.chatAreaGlowOpacity > 0.05 { // Use a small threshold to ensure it's meant to be visible
-                ScreenMarginGlowView(glowOpacity: llmService.chatAreaGlowOpacity)
-                    .zIndex(1.5) // Above NavigationView content (zIndex 1 for chatViewLayer), below modals (zIndex 2, 3)
-            }
+            // ChatAreaGlobalGlowOverlay was here in your provided code.
+            // If you don't want it, you can keep it removed as in your last version.
+            // if llmService.chatAreaGlowOpacity > 0 {
+            //     ChatAreaGlobalGlowOverlay(glowOpacity: llmService.chatAreaGlowOpacity)
+            //         .zIndex(1.5)
+            // }
 
             renameModalLayer
             deleteModalLayer
@@ -198,7 +209,7 @@ struct ContentView: View {
         .environment(\.colorScheme, .dark)
     }
 
-    func dragGesture() -> some Gesture {
+    func dragGesture() -> some Gesture { /* ... as before ... */
         DragGesture(minimumDistance: 10)
             .updating($dragGestureOffset) { value, state, transaction in
                 if sessionToRename != nil || showDeleteConfirmationPrompt {
@@ -239,7 +250,7 @@ struct ContentView: View {
     }
 }
 
-#Preview {
+#Preview { /* ... as before ... */
     ContentView()
         .environmentObject(LlmInferenceService())
         .environmentObject(UserData.shared)
