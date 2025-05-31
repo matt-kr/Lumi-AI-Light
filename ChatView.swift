@@ -267,11 +267,11 @@ struct ChatView: View {
     }
 
     private var placeholderText: String {
-        let name = userData.userName; let defaultName = "Matt"; let currentName = name.isEmpty ? defaultName : name
+        let name = userData.userName; let defaultName = "Human"; let currentName = name.isEmpty ? defaultName : name
         if llmService.isLoadingModel { return "Lumi is waking up..." }
         else if !llmService.isModelReady && llmService.initErrorMessage == nil { return "Preparing Lumi..." }
         else if !llmService.isModelReady && llmService.initErrorMessage != nil { return "Lumi has an issue. See above." }
-        else if !hasMadeFirstSubmission { return "Hi \(currentName), what can I do for you?" } // This still drives the input placeholder
+        else if !hasMadeFirstSubmission { return "Hi \(currentName), what's up?" } // This still drives the input placeholder
         else { return "Ask Lumi..." }
     }
 
