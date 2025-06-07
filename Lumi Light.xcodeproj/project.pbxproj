@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2CCF53BB27F778CA90FE9FD0 /* Pods_Lumi_Light.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49E454E1E5D4CBC7D6E81D77 /* Pods_Lumi_Light.framework */; };
 		552F8EE62DE1002100BA5F7A /* LlmWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE52DE1002100BA5F7A /* LlmWorker.swift */; };
 		552F8EEA2DE14F0300BA5F7A /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE72DE14F0300BA5F7A /* SettingsView.swift */; };
 		552F8EEB2DE14F0300BA5F7A /* UserData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 552F8EE82DE14F0300BA5F7A /* UserData.swift */; };
@@ -18,7 +19,6 @@
 		55B48D312DCFF120009D683B /* nasalization-rg 2.otf in Resources */ = {isa = PBXBuildFile; fileRef = 55B48D302DCFF120009D683B /* nasalization-rg 2.otf */; };
 		55C996552DE387C10083A116 /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C996542DE387C10083A116 /* ChatView.swift */; };
 		55C9969F2DE947F50083A116 /* RenamePromptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55C9969E2DE947F50083A116 /* RenamePromptView.swift */; };
-		94C0BE7FC08B0B15CE755EE4 /* Pods_Lumi_Light.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53E2D1C3E8A9EE341DEBF82C /* Pods_Lumi_Light.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,8 +39,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		507241D9909F86B6C5153EED /* Pods-Lumi Light.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.debug.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.debug.xcconfig"; sourceTree = "<group>"; };
-		53E2D1C3E8A9EE341DEBF82C /* Pods_Lumi_Light.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Lumi_Light.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		24F6550679A113234265E5AD /* Pods-Lumi Light.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.release.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.release.xcconfig"; sourceTree = "<group>"; };
+		32B2C3DCC72F21A741E8F474 /* Pods-Lumi Light.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.debug.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.debug.xcconfig"; sourceTree = "<group>"; };
+		49E454E1E5D4CBC7D6E81D77 /* Pods_Lumi_Light.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Lumi_Light.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		552F8EE52DE1002100BA5F7A /* LlmWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LlmWorker.swift; sourceTree = "<group>"; };
 		552F8EE72DE14F0300BA5F7A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		552F8EE82DE14F0300BA5F7A /* UserData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserData.swift; sourceTree = "<group>"; };
@@ -55,7 +56,6 @@
 		55B48D302DCFF120009D683B /* nasalization-rg 2.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "nasalization-rg 2.otf"; sourceTree = "<group>"; };
 		55C996542DE387C10083A116 /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
 		55C9969E2DE947F50083A116 /* RenamePromptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenamePromptView.swift; sourceTree = "<group>"; };
-		AA0ACEC8E44C0D5BC1F9EC6D /* Pods-Lumi Light.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Lumi Light.release.xcconfig"; path = "Target Support Files/Pods-Lumi Light/Pods-Lumi Light.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -79,11 +79,15 @@
 		};
 		55B48CE02DCFB6BF009D683B /* Lumi LightTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = "Lumi LightTests";
 			sourceTree = "<group>";
 		};
 		55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = "Lumi LightUITests";
 			sourceTree = "<group>";
 		};
@@ -94,7 +98,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				94C0BE7FC08B0B15CE755EE4 /* Pods_Lumi_Light.framework in Frameworks */,
+				2CCF53BB27F778CA90FE9FD0 /* Pods_Lumi_Light.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -115,11 +119,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		10E8554DBA63DD1BD997637F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				49E454E1E5D4CBC7D6E81D77 /* Pods_Lumi_Light.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		3EF224E8161CF4D0D0E99170 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				507241D9909F86B6C5153EED /* Pods-Lumi Light.debug.xcconfig */,
-				AA0ACEC8E44C0D5BC1F9EC6D /* Pods-Lumi Light.release.xcconfig */,
+				32B2C3DCC72F21A741E8F474 /* Pods-Lumi Light.debug.xcconfig */,
+				24F6550679A113234265E5AD /* Pods-Lumi Light.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -143,7 +155,7 @@
 				55B48CEA2DCFB6BF009D683B /* Lumi LightUITests */,
 				55B48CCF2DCFB6BE009D683B /* Products */,
 				3EF224E8161CF4D0D0E99170 /* Pods */,
-				8EEFEA4EC174B85C091E047F /* Frameworks */,
+				10E8554DBA63DD1BD997637F /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -157,14 +169,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		8EEFEA4EC174B85C091E047F /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				53E2D1C3E8A9EE341DEBF82C /* Pods_Lumi_Light.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -172,7 +176,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 55B48CF12DCFB6BF009D683B /* Build configuration list for PBXNativeTarget "Lumi Light" */;
 			buildPhases = (
-				8D22741B7988CB1CBF7FC6F6 /* [CP] Check Pods Manifest.lock */,
+				5A266E440E5D87FC337455CF /* [CP] Check Pods Manifest.lock */,
 				55B48CCA2DCFB6BE009D683B /* Sources */,
 				55B48CCB2DCFB6BE009D683B /* Frameworks */,
 				55B48CCC2DCFB6BE009D683B /* Resources */,
@@ -302,7 +306,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		8D22741B7988CB1CBF7FC6F6 /* [CP] Check Pods Manifest.lock */ = {
+		5A266E440E5D87FC337455CF /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -496,7 +500,7 @@
 		};
 		55B48CF22DCFB6BF009D683B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 507241D9909F86B6C5153EED /* Pods-Lumi Light.debug.xcconfig */;
+			baseConfigurationReference = 32B2C3DCC72F21A741E8F474 /* Pods-Lumi Light.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -529,7 +533,7 @@
 		};
 		55B48CF32DCFB6BF009D683B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AA0ACEC8E44C0D5BC1F9EC6D /* Pods-Lumi Light.release.xcconfig */;
+			baseConfigurationReference = 24F6550679A113234265E5AD /* Pods-Lumi Light.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
