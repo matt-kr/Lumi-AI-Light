@@ -1,3 +1,23 @@
 # Ignore TensorFlow Lite files
 gemma-2b-it-gpu-int8.tflite
 gemma3-1B-it-int4.tflite
+clearing uneeded files from que
+# Ignore local workspace, build, and pod files
+Lumi Light.xcworkspace.broken/
+Lumi Light App v1 2025-05-30 21-23-24/
+Lumi Light.xcworkspace/xcuserdata/
+Lumi Light.xcworkspace/xcshareddata/
+Pods/Pods.xcodeproj/xcuserdata/
+Pods/Pods.xcodeproj/xcshareddata/
+*.xcuserdatad/
+*.xcdebugger/
+*.xcbkptlist
+Pods/Manifest.lock
+Pods/Pods.xcodeproj/project.pbxproj
+Pods/Pods.xcodeproj/xcuserdata/
+Pods/Pods.xcodeproj/xcshareddata/
+Podfile.lock
+Pods/Pods.xcodeproj/xcuserdata/mattkrussow.xcuserdatad/xcschemes/Pods-Lumi Light.xcscheme
+Pods/Pods.xcodeproj/xcuserdata/mattkrussow.xcuserdatad/xcschemes/Pods-Lumi Light.xcscheme
+Pods/Pods.xcodeproj/xcuserdata/mattkrussow.xcuserdatad/xcschemes/Pods-Lumi Light.xcscheme
+Pods/Pods.xcodeproj/xcuserdata/mattkrussow.xcuserdatad/xcschemes/Pods-Lumi Light.xcscheme
